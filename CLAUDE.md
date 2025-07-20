@@ -80,3 +80,12 @@ cd cx-mcp-server && npm run test:e2e       # End-to-end tests
 4. Swagger documentation available at http://localhost:3001/docs
 5. Code changes in `cx-mcp-server/src` trigger automatic reload
 6. Run `make lint` before committing changes
+
+## Development Best Practices
+- Always format code with prettier or command `make format`
+
+## Code Quality Guidelines
+- Always use descriptive variable names
+
+## Development Principles
+- Always follow SOLID principle and DRY code principle
