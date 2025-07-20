@@ -6,11 +6,19 @@ A Customer Experience (CX) submission creator project featuring a NestJS-based M
 
 ```
 cx-submission-creator/
-cx-mcp-server/          # NestJS application
-docker/
-local/              # Local development Docker configurations
-docker-compose.yml      # Docker Compose configuration
-README.md              # This file
+├── cx-mcp-server/           # NestJS application (main API server)
+│   ├── src/                 # Source code
+│   ├── test/                # Test files
+│   ├── package.json         # Node.js dependencies
+│   ├── tsconfig.json        # TypeScript configuration
+│   ├── .env                 # Environment variables
+│   └── Dockerfile           # Docker configuration for development
+├── docker/
+│   └── local/               # Local development Docker configurations
+├── docker-compose.yml       # Docker Compose orchestration
+├── Makefile                 # Development commands
+├── CLAUDE.md               # Claude Code instructions
+└── README.md               # This file
 ```
 
 ## Features
