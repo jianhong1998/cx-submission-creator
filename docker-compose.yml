@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  cx-mcp-server:
+    build:
+      context: ./cx-mcp-server
+      dockerfile: ../docker/local/Dockerfile.cx-mcp-server
+    ports:
+      - '${APP_PORT:-3002}:3002'
+    env_file:
+      - ./cx-mcp-server/.env
+    develop:
+      watch:
+        - action: sync
+          path: ./cx-mcp-server/src
+          target: /app/src
+        - action: rebuild
+          path: ./cx-mcp-server/package.json
