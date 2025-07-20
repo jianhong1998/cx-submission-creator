@@ -55,10 +55,11 @@ cd cx-mcp-server && npm run test:e2e       # End-to-end tests
 
 ### NestJS Application (cx-mcp-server)
 - **Framework**: NestJS v11 with TypeScript
-- **Port**: 3000 (configurable via APP_PORT environment variable)
+- **Port**: 3002 (default for local development, configurable via APP_PORT environment variable)
 - **API Documentation**: Swagger UI available at `/docs`
 - **Validation**: Global DTO validation using class-validator and class-transformer
 - **Development**: Hot reload enabled with file watching
+- **SSE Endpoint**: `/sse` for real-time MCP communication
 
 ### Key Configuration
 - **TypeScript**: ES2023 target, CommonJS modules, decorators enabled
@@ -76,10 +77,11 @@ cd cx-mcp-server && npm run test:e2e       # End-to-end tests
 
 1. Use `make up/build` for initial setup or when dependencies change
 2. Use `make up` for subsequent starts
-3. Application runs on http://localhost:3001 (default APP_PORT)
-4. Swagger documentation available at http://localhost:3001/docs
-5. Code changes in `cx-mcp-server/src` trigger automatic reload
-6. Run `make lint` before committing changes
+3. Application runs on http://localhost:3002 (default APP_PORT for local development)
+4. Swagger documentation available at http://localhost:3002/docs
+5. SSE endpoint available at http://localhost:3002/sse for real-time MCP communication
+6. Code changes in `cx-mcp-server/src` trigger automatic reload
+7. Run `make lint` before committing changes
 
 ## Development Best Practices
 - Always format code with prettier or command `make format`
@@ -89,3 +91,6 @@ cd cx-mcp-server && npm run test:e2e       # End-to-end tests
 
 ## Development Principles
 - Always follow SOLID principle and DRY code principle
+
+## Typing Guidelines
+- Never use type any in the project, should always handle proper typing
