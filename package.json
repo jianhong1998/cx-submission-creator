@@ -1,0 +1,22 @@
+{
+  "name": "cx-submission-creator",
+  "version": "1.0.0",
+  "description": "A Customer Experience (CX) submission creator project featuring a NestJS-based MCP (Model Context Protocol) server for handling customer experience data and submissions.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jianhong1998/cx-submission-creator.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jianhong1998/cx-submission-creator/issues"
+  },
+  "homepage": "https://github.com/jianhong1998/cx-submission-creator#readme",
+  "devDependencies": {
+    "husky": "^9.1.7"
+  },
+  "scripts": {
+    "prepare": "husky"
+  }
+}
