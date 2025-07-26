@@ -44,6 +44,7 @@ cd cx-mcp-server && npm run test           # Unit tests
 cd cx-mcp-server && npm run test:watch     # Watch mode
 cd cx-mcp-server && npm run test:cov       # With coverage
 cd cx-mcp-server && npm run test:e2e       # End-to-end tests
+cd cx-mcp-server && npm run test -- --testPathPattern=filename  # Single test file
 ```
 
 ## Architecture Overview
@@ -59,13 +60,16 @@ cd cx-mcp-server && npm run test:e2e       # End-to-end tests
 - **API Documentation**: Swagger UI available at `/docs`
 - **Validation**: Global DTO validation using class-validator and class-transformer
 - **Development**: Hot reload enabled with file watching
-- **SSE Endpoint**: `/sse` for real-time MCP communication
+- **MCP Integration**: Model Context Protocol server with SSE endpoint at `/sse`
+- **MCP Tools**: HTTP tools and CRUD operations for customer experience data
+- **Database Support**: Configurable database types (memory, file, MongoDB, PostgreSQL)
 
 ### Key Configuration
 - **TypeScript**: ES2023 target, CommonJS modules, decorators enabled
 - **Validation**: Global ValidationPipe with transform, whitelist, and forbidNonWhitelisted
 - **Swagger**: Configured with DocumentBuilder for API documentation
 - **Environment**: Uses .env file in cx-mcp-server directory
+- **MCP Configuration**: Configurable via McpConfig class with database options and tool definitions
 
 ### Docker Development Setup
 - **Base Image**: node:22-alpine
@@ -81,7 +85,7 @@ cd cx-mcp-server && npm run test:e2e       # End-to-end tests
 4. Swagger documentation available at http://localhost:3002/docs
 5. SSE endpoint available at http://localhost:3002/sse for real-time MCP communication
 6. Code changes in `cx-mcp-server/src` trigger automatic reload
-7. Run `make lint` before committing changes
+7. Run `make lint` and `make format` before committing changes
 
 ## Development Best Practices
 - Always format code with prettier or command `make format`
