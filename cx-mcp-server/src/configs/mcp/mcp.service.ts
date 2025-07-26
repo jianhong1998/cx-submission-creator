@@ -6,8 +6,9 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import { getAllHttpTools } from './tools/http.tools';
+import { getAllTools } from './tools/http.tools';
 import { GetDataDto, HttpResponseDto } from './dto/http.dto';
+import { ProjectTeamBuilderService } from '../../services/project-team-builder.service';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 
@@ -17,7 +18,10 @@ export class McpService {
   private server: Server;
   private readonly cxServerHost: string;
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private projectTeamBuilderService: ProjectTeamBuilderService,
+  ) {
     this.cxServerHost = this.configService.get<string>(
       'BACKEND_HOSTNAME',
       'http://localhost:3000',
@@ -43,7 +47,7 @@ export class McpService {
   private setupToolHandlers(): void {
     this.server.setRequestHandler(ListToolsRequestSchema, () => {
       return {
-        tools: getAllHttpTools(),
+        tools: getAllTools(),
       };
     });
 
@@ -54,6 +58,8 @@ export class McpService {
         switch (name) {
           case 'get_data':
             return await this.handleGetData(args);
+          case 'list_users':
+            return await this.handleListUsers();
           default:
             throw new Error(`Unknown tool: ${name}`);
         }
@@ -125,6 +131,25 @@ export class McpService {
     } catch (error) {
       throw new Error(
         `Failed to fetch data: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
+  }
+
+  private async handleListUsers() {
+    try {
+      const result = await this.projectTeamBuilderService.getAccountLicenses();
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      throw new Error(
+        `Failed to list users: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
     }
   }

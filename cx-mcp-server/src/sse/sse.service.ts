@@ -8,8 +8,9 @@ import {
   ListToolsRequestSchema,
   JSONRPCMessage,
 } from '@modelcontextprotocol/sdk/types.js';
-import { getAllHttpTools } from '../configs/mcp/tools/http.tools';
+import { getAllTools } from '../configs/mcp/tools/http.tools';
 import { GetDataDto, HttpResponseDto } from '../configs/mcp/dto/http.dto';
+import { ProjectTeamBuilderService } from '../services/project-team-builder.service';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 
@@ -20,7 +21,10 @@ export class SseService {
   private readonly cxServerHost: string;
   private clients = new Map<string, Response>();
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private projectTeamBuilderService: ProjectTeamBuilderService,
+  ) {
     this.cxServerHost = this.configService.get<string>(
       'BACKEND_HOSTNAME',
       'http://localhost:3000',
@@ -45,7 +49,7 @@ export class SseService {
 
   private setupToolHandlers(): void {
     this.server.setRequestHandler(ListToolsRequestSchema, () => {
-      const tools = getAllHttpTools();
+      const tools = getAllTools();
 
       // Broadcast tool list to SSE clients
       this.sendToAllClients('tools_listed', {
@@ -71,6 +75,9 @@ export class SseService {
         switch (name) {
           case 'get_data':
             result = await this.handleGetData(args);
+            break;
+          case 'list_users':
+            result = await this.handleListUsers();
             break;
           default:
             throw new Error(`Unknown tool: ${name}`);
@@ -201,6 +208,25 @@ export class SseService {
     });
 
     return null;
+  }
+
+  private async handleListUsers() {
+    try {
+      const result = await this.projectTeamBuilderService.getAccountLicenses();
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      throw new Error(
+        `Failed to list users: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
   }
 
   async start(): Promise<void> {
