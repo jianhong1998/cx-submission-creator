@@ -24,3 +24,15 @@ export const getDataToolExample: Tool = {
 };
 
 export const getAllHttpTools = (): Tool[] => [getDataToolExample];
+
+// Import account license tools
+import { getAllAccountLicenseTools } from './account-licenses.tools';
+
+/**
+ * Get all available tools (HTTP tools + Account License tools)
+ * @returns Array of all available MCP tools
+ */
+export const getAllTools = (): Tool[] => [
+  ...getAllHttpTools(),
+  ...getAllAccountLicenseTools(),
+];
