@@ -22,7 +22,7 @@ export class SseService {
 
   constructor(private configService: ConfigService) {
     this.cxServerHost = this.configService.get<string>(
-      'APP_CX_SERVER_HOST',
+      'BACKEND_HOSTNAME',
       'http://localhost:3000',
     );
     this.server = new Server(
