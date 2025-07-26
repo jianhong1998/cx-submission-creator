@@ -92,7 +92,7 @@ This requirement covers the development of a single MCP tool that:
 
 **Description**: Support configurable hostname through environment variables
 
-- **Environment Variable**: Define hostname via environment variable (e.g., `PROJECT_TEAM_BUILDER_HOST`)
+- **Environment Variable**: Define hostname via environment variable (e.g., `BACKEND_HOSTNAME`)
 - **Default Value**: Provide sensible default for local development
 - **Validation**: Validate hostname format and accessibility
 - **Documentation**: Clear documentation on required environment setup
@@ -103,7 +103,7 @@ This requirement covers the development of a single MCP tool that:
 
 **Description**: Proper handling of environment-based configuration
 
-- **Variable Name**: `PROJECT_TEAM_BUILDER_HOST` (or similar)
+- **Variable Name**: `BACKEND_HOSTNAME` (or similar)
 - **Example Values**:
   - Local: `http://localhost:8000`
   - UAT: `https://uat-team-builder.company.com`
@@ -156,44 +156,122 @@ This requirement covers the development of a single MCP tool that:
 
 ### 5.3 Response Schema Specifications
 
-**⚠️ INVESTIGATION REQUIRED**: The exact response schema from the endpoint is currently unknown and requires investigation by the implementation team.
+**✅ INVESTIGATION COMPLETED**: The endpoint response schema has been investigated and documented.
 
-**Action Items for Implementation Team**:
+**Investigation Results**:
 
-1. Test the endpoint `{hostname}/services/uat/project-team-builder/account-licenses`
-2. Document the actual response structure
-3. Identify key fields and data types
-4. Update this BRD with findings
-5. Define appropriate TypeScript interfaces
+1. **Endpoint Response**: `GET localhost:8000/services/uat/project-team-builder/account-licenses`
+2. **HTTP Status**: 200 OK
+3. **Content-Type**: application/json; charset=utf-8
+4. **Response Time**: ~0.025 seconds
+5. **Rate Limiting**: 1000 requests per minute
+6. **Authentication**: No authentication required for this endpoint
 
-**Expected Investigation Areas**:
-
-- Response data structure and field names
-- Data types for each field
-- Pagination (if applicable)
-- Metadata fields
-- Error response formats from the external service
-
-**Placeholder Error Handling Structure**:
+**Response Structure**: The endpoint returns an array of account license objects with the following schema:
 
 ```typescript
-// Error Response Structure (to be refined)
+interface AccountLicense {
+  accountUuid: string;
+  accountName: string;
+  identificationNumber: string;
+  accountCompanyUEN?: string; // Optional field, only present for some accounts
+  professionalLicenses: ProfessionalLicense[];
+  availableRolesForAccountLicenses: AvailableRole[];
+}
+
+interface ProfessionalLicense {
+  uuid: string;
+  registrar: string; // e.g., "PEB", "BOA"
+  regNumber: string;
+  valid: string; // ISO date string
+  specialty: string | null; // e.g., "Mechanical" or null
+}
+
+interface AvailableRole {
+  roleKey: string; // e.g., "developer", "transportConsultant", "professionalEngineerMechanical", "registeredArchitect"
+  regNumber: string | null;
+}
+```
+
+**Sample Response Data**:
+```json
+[
+  {
+    "accountUuid": "6daa218b-cce4-4495-ae74-877692a6fd63",
+    "accountName": "PE 5",
+    "identificationNumber": "S7018005E",
+    "professionalLicenses": [
+      {
+        "uuid": "e04d0090-ec9a-47d4-9eef-9184bf6f1522",
+        "registrar": "PEB",
+        "regNumber": "8003",
+        "valid": "2028-07-23T16:00:00.000Z",
+        "specialty": "Mechanical"
+      }
+    ],
+    "availableRolesForAccountLicenses": [
+      {
+        "roleKey": "developer",
+        "regNumber": null
+      },
+      {
+        "roleKey": "transportConsultant", 
+        "regNumber": null
+      },
+      {
+        "roleKey": "professionalEngineerMechanical",
+        "regNumber": "8003"
+      }
+    ]
+  }
+]
+```
+
+**Response Headers**: 
+- Rate limiting headers: `X-RateLimit-Limit-Minute: 1000`, `X-RateLimit-Remaining-Minute`
+- Security headers: CSP, CORS, XSS protection
+- Correlation ID: `x-correlation-id` for request tracking
+- ETag support for caching
+- Kong proxy headers
+
+**Error Response Structure**:
+
+```typescript
+// 403 Forbidden (when authentication fails)
+{
+  timestamp: string; // ISO date string
+  success: false;
+  status: 403;
+  message: "NOT_LOGGED_IN";
+  errorCode: "NOT_LOGGED_IN";
+  stack: string; // Full error stack trace
+}
+
+// General Error Response Structure
 {
   success: false,
   error: {
     type: "CLIENT_ERROR" | "SERVER_ERROR" | "NETWORK_ERROR",
-    statusCode?: number,
+    statusCode: number,
     message: string,
     details?: any
   }
 }
 
-// Success Response Structure (to be defined after investigation)
+// Success Response Structure
 {
   success: true,
-  data: any // Actual structure TBD based on endpoint investigation
+  data: AccountLicense[] // Array of account license objects
 }
 ```
+
+**Key Findings**:
+- No pagination implemented - returns all records in single response
+- Response size: ~3.6KB for current dataset
+- No authentication required for the specific endpoint tested
+- Error responses include detailed stack traces in development environment
+- Service uses Kong API gateway with rate limiting
+- Response includes both individual and company accounts
 
 ---
 
@@ -220,10 +298,10 @@ This requirement covers the development of a single MCP tool that:
 ### 7.1 Required Environment Variables
 
 ```bash
-# Project Team Builder Service Configuration
-PROJECT_TEAM_BUILDER_HOST=http://localhost:8000  # Local development
-# PROJECT_TEAM_BUILDER_HOST=https://uat-team-builder.company.com  # UAT
-# PROJECT_TEAM_BUILDER_HOST=https://team-builder.company.com  # Production
+# Backend Service Configuration
+BACKEND_HOSTNAME=http://localhost:8000  # Local development
+# BACKEND_HOSTNAME=https://uat-team-builder.company.com  # UAT
+# BACKEND_HOSTNAME=https://team-builder.company.com  # Production
 ```
 
 ### 7.2 Configuration Validation
@@ -255,7 +333,7 @@ PROJECT_TEAM_BUILDER_HOST=http://localhost:8000  # Local development
 - [ ] Tool documentation is complete and accurate
 - [ ] Unit tests cover all scenarios including configuration
 - [ ] Integration tests validate end-to-end functionality
-- [ ] **Response schema investigation completed and documented**
+- [x] **Response schema investigation completed and documented**
 
 ---
 
