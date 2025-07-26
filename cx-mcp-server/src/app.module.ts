@@ -5,7 +5,7 @@ import { AppService } from './app.service';
 import { SseModule } from './sse/sse.module';
 import { AppConfig } from './configs/app.config';
 import { AppConfigService } from './configs/app-config.service';
-import { ProjectTeamBuilderService } from './services/project-team-builder.service';
+import { ProjectTeamBuilderModule } from './services/project-team-builder.module';
 
 @Module({
   imports: [
@@ -18,9 +18,10 @@ import { ProjectTeamBuilderService } from './services/project-team-builder.servi
       },
     }),
     SseModule,
+    ProjectTeamBuilderModule,
   ],
   controllers: [AppController],
-  providers: [AppService, AppConfigService, ProjectTeamBuilderService],
-  exports: [AppConfigService, ProjectTeamBuilderService],
+  providers: [AppService, AppConfigService],
+  exports: [AppConfigService],
 })
 export class AppModule {}
