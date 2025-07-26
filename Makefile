@@ -42,6 +42,8 @@ lint/fix:
 		npm run lint . --fix
 
 install:
-	@@cd cx-mcp-server && \
-		rm -rf node_modules && \
+	@rm -rf node_modules && \
+		rm -rf cx-mcp-server/node_modules
+	@npm ci
+	@cd cx-mcp-server && \
 		npm ci
