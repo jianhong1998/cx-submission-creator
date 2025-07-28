@@ -1,6 +1,6 @@
 # CX Submission Creator
 
-A Customer Experience (CX) submission creator project featuring a NestJS-based MCP (Model Context Protocol) server for handling customer experience data and submissions.
+A Customer Experience (CX) submission creator project featuring a NestJS-based MCP (Model Context Protocol) server with enhanced SSE transport for AI agent integration, project team builder services, and comprehensive customer experience data management.
 
 ## Project Structure
 
@@ -30,12 +30,20 @@ cx-submission-creator/
 - **Validation**: Global DTO validation with class-validator and class-transformer
 - **Development**: Hot reload and watch mode support
 - **Runtime**: Node.js 22
+- **MCP Integration**: Enhanced Model Context Protocol server with SSE transport
+- **MCP Endpoints**: 
+  - `GET /sse` - Establish MCP SSE connection with proper transport handling
+  - `POST /sse/messages` - Handle JSON-RPC messages via SSE transport
+- **MCP Tools**: Account license tools, HTTP tools, and project team builder integration
+- **Project Team Builder**: Modular service for user account and license management
 
 ### Key Dependencies
 
 - `@nestjs/swagger` - API documentation
 - `class-validator` & `class-transformer` - DTO validation and transformation
 - `swagger-ui-express` - Swagger UI integration
+- `@modelcontextprotocol/sdk` - Model Context Protocol server implementation
+- SSE transport support for real-time AI agent communication
 
 ## Development Setup
 
@@ -63,8 +71,9 @@ docker-compose up --build
 
 2. **Access the application**:
 
-- API Server: http://localhost:3001
-- Swagger Documentation: http://localhost:3001/docs
+- API Server: http://localhost:3002 (configurable via APP_PORT)
+- Swagger Documentation: http://localhost:3002/docs
+- MCP SSE Endpoint: http://localhost:3002/sse (for AI agent connections)
 
 3. **Development features**:
 
@@ -130,6 +139,22 @@ Once the server is running, visit `/docs` for the complete Swagger API documenta
 - Automatic request/response validation
 - Interactive API testing
 - Schema definitions for all DTOs
+
+## MCP Integration
+
+The server provides Model Context Protocol integration for AI agents:
+
+### Available MCP Tools
+
+- **list_users**: Retrieve all users and their account licenses from the project team builder service
+  - Returns comprehensive user information including professional licenses, roles, and account details
+  - No parameters required - fetches all available data
+
+### MCP Connection
+
+AI agents can connect to the MCP server via:
+- **SSE Connection**: `GET /sse` - Establishes MCP SSE transport connection
+- **Message Handling**: `POST /sse/messages` - Processes JSON-RPC messages via SSE transport
 
 ## TypeScript Configuration
 

@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
@@ -241,6 +242,16 @@ export class SseService {
     });
   }
 
+  async connectTransport(transport: SSEServerTransport): Promise<void> {
+    this.logger.log(
+      `Connecting MCP server to SSE transport: ${transport.sessionId}`,
+    );
+    await this.server.connect(transport);
+    this.logger.log(
+      `MCP server connected to transport: ${transport.sessionId}`,
+    );
+  }
+
   async stop(): Promise<void> {
     await this.server.close();
     this.logger.log('MCP SSE Server stopped');
@@ -272,6 +283,54 @@ export class SseService {
       response.write(`data: ${JSON.stringify(data)}\n\n`);
     } catch (error) {
       this.logger.error('Failed to send SSE event:', error);
+    }
+  }
+
+  sendMcpInitialization(clientId: string): void {
+    // Send server capabilities and info immediately
+    const serverInfo = {
+      jsonrpc: '2.0',
+      result: {
+        protocolVersion: '2024-11-05',
+        capabilities: {
+          tools: {},
+          logging: {},
+        },
+        serverInfo: {
+          name: 'cx-mcp-sse-server',
+          version: '1.0.0',
+        },
+      },
+    };
+
+    // For SSE MCP, send as data event without wrapping in another event
+    const response = this.clients.get(clientId);
+    if (response) {
+      try {
+        response.write(`data: ${JSON.stringify(serverInfo)}\n\n`);
+        this.logger.log(`Sent MCP server info to client ${clientId}`);
+      } catch (error) {
+        this.logger.error(
+          `Failed to send server info to client ${clientId}:`,
+          error,
+        );
+      }
+    }
+  }
+
+  sendMcpHeartbeat(clientId: string): void {
+    // Send simple heartbeat as SSE comment to keep connection alive
+    const response = this.clients.get(clientId);
+    if (response) {
+      try {
+        response.write(`: heartbeat ${new Date().toISOString()}\n\n`);
+      } catch (error) {
+        this.logger.error(
+          `Failed to send heartbeat to client ${clientId}:`,
+          error,
+        );
+        this.clients.delete(clientId);
+      }
     }
   }
 
@@ -313,5 +372,91 @@ export class SseService {
       connectedClients: this.getConnectedClients(),
       timestamp: new Date().toISOString(),
     };
+  }
+
+  async handleMcpRequest(message: {
+    jsonrpc: string;
+    method: string;
+    params?: unknown;
+    id?: string | number;
+  }): Promise<{
+    jsonrpc: string;
+    result?: unknown;
+    error?: { code: number; message: string };
+    id?: string | number | null;
+  }> {
+    const { method, params, id } = message;
+
+    switch (method) {
+      case 'initialize':
+        return {
+          jsonrpc: '2.0',
+          result: {
+            protocolVersion: '2024-11-05',
+            capabilities: {
+              tools: {},
+              logging: {},
+            },
+            serverInfo: {
+              name: 'cx-mcp-sse-server',
+              version: '1.0.0',
+            },
+          },
+          id,
+        };
+
+      case 'tools/list': {
+        const tools = getAllTools();
+        return {
+          jsonrpc: '2.0',
+          result: { tools },
+          id,
+        };
+      }
+
+      case 'tools/call': {
+        try {
+          const toolParams = params as { name: string; arguments: unknown };
+          const { name, arguments: args } = toolParams;
+          let result: { content: Array<{ type: string; text: string }> };
+
+          switch (name) {
+            case 'get_data':
+              result = await this.handleGetData(args);
+              break;
+            case 'list_users':
+              result = await this.handleListUsers();
+              break;
+            default:
+              throw new Error(`Unknown tool: ${name}`);
+          }
+
+          return {
+            jsonrpc: '2.0',
+            result,
+            id,
+          };
+        } catch (error) {
+          return {
+            jsonrpc: '2.0',
+            error: {
+              code: -32603,
+              message: error instanceof Error ? error.message : 'Unknown error',
+            },
+            id,
+          };
+        }
+      }
+
+      default:
+        return {
+          jsonrpc: '2.0',
+          error: {
+            code: -32601,
+            message: `Method not found: ${method}`,
+          },
+          id,
+        };
+    }
   }
 }
