@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { McpService } from './mcp.service';
-import { UserAccountService } from '../../external-services/user-account.service';
+import { UserAccountService } from '../../external-services/services/user-account.service';
 import { getAllTools } from './tools/http.tools';
 
 // Mock the UserAccountService

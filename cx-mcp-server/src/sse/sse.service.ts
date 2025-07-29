@@ -11,7 +11,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { getAllTools } from '../configs/mcp/tools/http.tools';
 import { GetDataDto, HttpResponseDto } from '../configs/mcp/dto/http.dto';
-import { UserAccountService } from '../external-services/user-account.service';
+import { UserAccountService } from '../external-services/services/user-account.service';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 

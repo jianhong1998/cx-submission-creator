@@ -1,12 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AppConfigService } from '../configs/app-config.service';
+import { AppConfigService } from '../../configs/app-config.service';
 import {
   AccountLicensesResponse,
   AccountLicensesSuccessResponse,
   AccountLicensesErrorResponse,
   RawAccountLicensesResponse,
   AuthenticationErrorResponse,
-} from '../interfaces/account-license.interface';
+} from '../../interfaces/account-license.interface';
 
 /**
  * Service for managing user account data from external services.

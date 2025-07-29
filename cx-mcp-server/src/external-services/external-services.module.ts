@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { UserAccountService } from './user-account.service';
+import { UserAccountService } from './services/user-account.service';
 import { AppConfigService } from '../configs/app-config.service';
 
 /**

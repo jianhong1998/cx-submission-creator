@@ -1,13 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Logger } from '@nestjs/common';
 import { UserAccountService } from './user-account.service';
-import { AppConfigService } from '../configs/app-config.service';
+import { AppConfigService } from '../../configs/app-config.service';
 import {
   AccountLicensesSuccessResponse,
   AccountLicensesErrorResponse,
   RawAccountLicensesResponse,
   AuthenticationErrorResponse,
-} from '../interfaces/account-license.interface';
+} from '../../interfaces/account-license.interface';
 
 // Mock fetch globally
 global.fetch = jest.fn();
