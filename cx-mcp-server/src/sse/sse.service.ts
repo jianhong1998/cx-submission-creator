@@ -11,7 +11,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { getAllTools } from '../configs/mcp/tools/http.tools';
 import { GetDataDto, HttpResponseDto } from '../configs/mcp/dto/http.dto';
-import { ProjectTeamBuilderService } from '../services/project-team-builder.service';
+import { ProjectTeamBuilderService } from '../project-team-builder/project-team-builder.service';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 

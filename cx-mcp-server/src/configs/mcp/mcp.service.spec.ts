@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { McpService } from './mcp.service';
-import { ProjectTeamBuilderService } from '../../services/project-team-builder.service';
+import { ProjectTeamBuilderService } from '../../project-team-builder/project-team-builder.service';
 import { getAllTools } from './tools/http.tools';
 
 // Mock the ProjectTeamBuilderService
