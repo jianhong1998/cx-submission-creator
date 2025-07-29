@@ -1,6 +1,6 @@
 # CX Submission Creator
 
-A Customer Experience (CX) submission creator project featuring a NestJS-based MCP (Model Context Protocol) server with enhanced SSE transport for AI agent integration, project team builder services, and comprehensive customer experience data management.
+A Customer Experience (CX) submission creator project featuring a NestJS-based MCP (Model Context Protocol) server with enhanced SSE transport for AI agent integration, external services integration, and comprehensive customer experience data management.
 
 ## Project Structure
 
@@ -34,8 +34,8 @@ cx-submission-creator/
 - **MCP Endpoints**: 
   - `GET /sse` - Establish MCP SSE connection with proper transport handling
   - `POST /sse/messages` - Handle JSON-RPC messages via SSE transport
-- **MCP Tools**: Account license tools, HTTP tools, and project team builder integration
-- **Project Team Builder**: Modular service for user account and license management
+- **MCP Tools**: User account tools, HTTP tools, and external services integration
+- **External Services Module**: Modular architecture for integrating with multiple external APIs and user account management
 
 ### Key Dependencies
 
@@ -146,8 +146,9 @@ The server provides Model Context Protocol integration for AI agents:
 
 ### Available MCP Tools
 
-- **list_users**: Retrieve all users and their account licenses from the project team builder service
+- **list_users**: Retrieve all users and their account licenses from external services via the User Account Service
   - Returns comprehensive user information including professional licenses, roles, and account details
+  - Utilizes the external-services module for scalable integration with multiple external APIs
   - No parameters required - fetches all available data
 
 ### MCP Connection

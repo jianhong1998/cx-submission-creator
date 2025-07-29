@@ -1,14 +1,14 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { McpService } from './mcp.service';
-import { ProjectTeamBuilderModule } from '../../project-team-builder/project-team-builder.module';
+import { ExternalServicesModule } from '../../external-services/external-services.module';
 
 /**
  * MCP Module encapsulates the MCP service and its dependencies.
- * This module provides the MCP service with access to the ProjectTeamBuilderService.
+ * This module provides the MCP service with access to external services like UserAccountService.
  */
 @Module({
-  imports: [ConfigModule, ProjectTeamBuilderModule],
+  imports: [ConfigModule, ExternalServicesModule],
   providers: [McpService],
   exports: [McpService],
 })

@@ -1,12 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { McpService } from './mcp.service';
-import { ProjectTeamBuilderService } from '../../project-team-builder/project-team-builder.service';
+import { UserAccountService } from '../../external-services/user-account.service';
 import { getAllTools } from './tools/http.tools';
 
-// Mock the ProjectTeamBuilderService
-const mockProjectTeamBuilderService = {
-  getAccountLicenses: jest.fn(),
+// Mock the UserAccountService
+const mockUserAccountService = {
+  getUserAccountLicenses: jest.fn(),
 };
 
 describe('McpService', () => {
@@ -23,8 +23,8 @@ describe('McpService', () => {
           },
         },
         {
-          provide: ProjectTeamBuilderService,
-          useValue: mockProjectTeamBuilderService,
+          provide: UserAccountService,
+          useValue: mockUserAccountService,
         },
       ],
     }).compile();
@@ -54,7 +54,7 @@ describe('McpService', () => {
   });
 
   describe('handleListUsers', () => {
-    it('should call ProjectTeamBuilderService.getAccountLicenses', async () => {
+    it('should call ProjectTeamBuilderService.getUserAccountLicenses', async () => {
       const mockResult = {
         success: true,
         data: [
@@ -68,7 +68,7 @@ describe('McpService', () => {
         ],
       };
 
-      mockProjectTeamBuilderService.getAccountLicenses.mockResolvedValue(
+      mockUserAccountService.getUserAccountLicenses.mockResolvedValue(
         mockResult,
       );
 
@@ -76,9 +76,7 @@ describe('McpService', () => {
         service as unknown as { handleListUsers: () => Promise<unknown> }
       ).handleListUsers();
 
-      expect(
-        mockProjectTeamBuilderService.getAccountLicenses,
-      ).toHaveBeenCalled();
+      expect(mockUserAccountService.getUserAccountLicenses).toHaveBeenCalled();
       expect(result).toEqual({
         content: [
           {
@@ -91,7 +89,7 @@ describe('McpService', () => {
 
     it('should handle errors from ProjectTeamBuilderService', async () => {
       const mockError = new Error('Service unavailable');
-      mockProjectTeamBuilderService.getAccountLicenses.mockRejectedValue(
+      mockUserAccountService.getUserAccountLicenses.mockRejectedValue(
         mockError,
       );
 

@@ -8,7 +8,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { getAllTools } from './tools/http.tools';
 import { GetDataDto, HttpResponseDto } from './dto/http.dto';
-import { ProjectTeamBuilderService } from '../../project-team-builder/project-team-builder.service';
+import { UserAccountService } from '../../external-services/user-account.service';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 
@@ -20,7 +20,7 @@ export class McpService {
 
   constructor(
     private configService: ConfigService,
-    private projectTeamBuilderService: ProjectTeamBuilderService,
+    private userAccountService: UserAccountService,
   ) {
     this.cxServerHost = this.configService.get<string>(
       'BACKEND_HOSTNAME',
@@ -137,7 +137,7 @@ export class McpService {
 
   private async handleListUsers() {
     try {
-      const result = await this.projectTeamBuilderService.getAccountLicenses();
+      const result = await this.userAccountService.getUserAccountLicenses();
 
       return {
         content: [

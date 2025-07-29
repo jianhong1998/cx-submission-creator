@@ -1,13 +1,13 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 
 /**
- * MCP tool for retrieving account licenses and user information
- * This tool enables AI agents to fetch user data from the project team builder service
+ * MCP tool for retrieving user account licenses and professional credentials
+ * This tool enables AI agents to fetch comprehensive user data including licenses and roles
  */
 export const listUsersTool: Tool = {
   name: 'list_users',
   description:
-    'Retrieve a list of all users and their account licenses from the project team builder service. Returns comprehensive user information including professional licenses, available roles, and account details.',
+    'Retrieve a list of all users and their account licenses from external services. Returns comprehensive user information including professional licenses, available roles, and account details.',
   inputSchema: {
     type: 'object',
     properties: {

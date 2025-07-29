@@ -9,24 +9,27 @@ import {
 } from '../interfaces/account-license.interface';
 
 /**
- * Service for interacting with the project team builder service
- * Handles HTTP requests to retrieve account licenses and user information
+ * Service for managing user account data from external services.
+ * Provides methods to retrieve user account information, licenses, and related data
+ * from various external APIs. Designed to be extensible for multiple external services.
  */
 @Injectable()
-export class ProjectTeamBuilderService {
-  private readonly logger = new Logger(ProjectTeamBuilderService.name);
+export class UserAccountService {
+  private readonly logger = new Logger(UserAccountService.name);
   private readonly timeout = 5000; // 5 seconds timeout as per requirements
 
   constructor(private readonly appConfigService: AppConfigService) {}
 
   /**
-   * Retrieves account licenses from the project team builder service
-   * @returns Promise<AccountLicensesResponse> - Standardized response with success/error handling
+   * Retrieves user account licenses and professional credentials from the external service.
+   * This method fetches comprehensive user data including professional licenses,
+   * available roles, and account information.
+   * @returns Promise<AccountLicensesResponse> - Standardized response with user account data or error details
    */
-  async getAccountLicenses(): Promise<AccountLicensesResponse> {
+  async getUserAccountLicenses(): Promise<AccountLicensesResponse> {
     const url = this.appConfigService.getAccountLicensesUrl();
 
-    this.logger.log(`Fetching account licenses from: ${url}`);
+    this.logger.log(`Fetching user account licenses from: ${url}`);
 
     try {
       // Create AbortController for timeout handling
@@ -50,7 +53,9 @@ export class ProjectTeamBuilderService {
 
       const data = (await response.json()) as RawAccountLicensesResponse;
 
-      this.logger.log(`Successfully retrieved ${data.length} account licenses`);
+      this.logger.log(
+        `Successfully retrieved ${data.length} user accounts with licenses`,
+      );
 
       const successResponse: AccountLicensesSuccessResponse = {
         success: true,

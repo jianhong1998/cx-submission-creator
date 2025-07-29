@@ -12,7 +12,7 @@ Based on the completed investigation and SPEC.md documentation, this document br
 **Estimated Time**: 30 minutes
 **Dependencies**: None
 
-**Description**: Set up environment variable handling for the project team builder service hostname.
+**Description**: Set up environment variable handling for external services hostname configuration.
 
 **Specific Actions**:
 1. Add `BACKEND_HOSTNAME` environment variable to the NestJS configuration
@@ -98,13 +98,13 @@ interface AvailableRole {
 **Estimated Time**: 45 minutes
 **Dependencies**: Tasks 1.1, 1.2
 
-**Description**: Create a service class to handle HTTP requests to the project team builder service.
+**Description**: Create a UserAccountService class within the external-services module to handle HTTP requests to external user account services.
 
 **Specific Actions**:
-1. Create `ProjectTeamBuilderService` class using NestJS patterns
+1. Create `UserAccountService` class within the external-services module using NestJS patterns
 2. Inject ConfigService to get the hostname from environment variables
 3. Implement HTTP client using axios or similar library (check existing patterns in codebase)
-4. Add method `getAccountLicenses()` that:
+4. Add method `getUserAccountLicenses()` that:
    - Constructs the full URL using configured hostname
    - Makes GET request to `/services/uat/project-team-builder/account-licenses`
    - Returns properly typed response
@@ -120,15 +120,15 @@ interface AvailableRole {
 - Handle rate limiting headers appropriately
 
 **Acceptance Criteria**:
-- Service follows NestJS dependency injection patterns
+- UserAccountService follows NestJS dependency injection patterns within external-services module
 - HTTP requests use configured hostname from environment variables
 - Proper error handling for 4XX, 5XX, and network errors
 - Response timeout set to 5 seconds
-- Method returns properly typed data
+- getUserAccountLicenses() method returns properly typed data
 - Comprehensive logging for debugging
 
 **Files to Create**:
-- `cx-mcp-server/src/services/project-team-builder.service.ts`
+- `cx-mcp-server/src/external-services/user-account.service.ts`
 
 ---
 
@@ -176,7 +176,7 @@ interface AvailableRole {
 - No sensitive information is exposed in error messages
 
 **Files to Modify**:
-- `cx-mcp-server/src/services/project-team-builder.service.ts`
+- `cx-mcp-server/src/external-services/user-account.service.ts`
 
 ---
 
@@ -197,7 +197,7 @@ interface AvailableRole {
    - Description: explain what the tool does and what data it returns
    - Parameters: none required for this tool
 4. Implement the tool handler that:
-   - Calls the ProjectTeamBuilderService
+   - Calls the UserAccountService.getUserAccountLicenses() method
    - Returns the response in MCP-compatible format
    - Handles errors appropriately
 5. Register the tool in the MCP framework
@@ -205,7 +205,7 @@ interface AvailableRole {
 
 **Technical Requirements**:
 - Follow existing MCP tool patterns in the codebase
-- Use dependency injection to get ProjectTeamBuilderService
+- Use dependency injection to get UserAccountService from external-services module
 - Return data in format expected by MCP framework
 - Tool should be discoverable by AI agents
 
@@ -272,8 +272,8 @@ interface AvailableRole {
 
 **Specific Actions**:
 1. Study existing test patterns in the codebase (check for Jest, testing utilities)
-2. Create unit tests for ProjectTeamBuilderService:
-   - Test successful API calls
+2. Create unit tests for UserAccountService:
+   - Test successful API calls with getUserAccountLicenses() method
    - Test error handling for different HTTP status codes
    - Test timeout scenarios
    - Test configuration loading
@@ -302,7 +302,7 @@ interface AvailableRole {
 - Tests can be run with existing test commands
 
 **Files to Create**:
-- `cx-mcp-server/src/services/project-team-builder.service.spec.ts`
+- `cx-mcp-server/src/external-services/user-account.service.spec.ts`
 - MCP tool test files (location based on existing patterns)
 - Any required test utility files
 

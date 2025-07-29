@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { Logger } from '@nestjs/common';
-import { ProjectTeamBuilderService } from './project-team-builder.service';
+import { UserAccountService } from './user-account.service';
 import { AppConfigService } from '../configs/app-config.service';
 import {
   AccountLicensesSuccessResponse,
@@ -38,8 +38,8 @@ const createMockResponse = (options: {
   } as unknown as Response;
 };
 
-describe('ProjectTeamBuilderService', () => {
-  let service: ProjectTeamBuilderService;
+describe('UserAccountService', () => {
+  let service: UserAccountService;
   let mockFetch: jest.MockedFunction<typeof fetch>;
 
   const mockAccountLicenses: RawAccountLicensesResponse = [
@@ -81,7 +81,7 @@ describe('ProjectTeamBuilderService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        ProjectTeamBuilderService,
+        UserAccountService,
         {
           provide: AppConfigService,
           useValue: {
@@ -95,7 +95,7 @@ describe('ProjectTeamBuilderService', () => {
       ],
     }).compile();
 
-    service = module.get<ProjectTeamBuilderService>(ProjectTeamBuilderService);
+    service = module.get<UserAccountService>(UserAccountService);
     mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
 
     // Reset all mocks before each test
@@ -110,7 +110,7 @@ describe('ProjectTeamBuilderService', () => {
     expect(service).toBeDefined();
   });
 
-  describe('getAccountLicenses', () => {
+  describe('getUserAccountLicenses', () => {
     it('should successfully retrieve account licenses', async () => {
       // Arrange
       const mockResponse = createMockResponse({
@@ -120,7 +120,7 @@ describe('ProjectTeamBuilderService', () => {
       mockFetch.mockResolvedValue(mockResponse);
 
       // Act
-      const result = await service.getAccountLicenses();
+      const result = await service.getUserAccountLicenses();
 
       // Assert
       expect(mockFetch).toHaveBeenCalledWith(
@@ -152,7 +152,7 @@ describe('ProjectTeamBuilderService', () => {
       mockFetch.mockResolvedValue(mockResponse);
 
       // Act
-      const result = await service.getAccountLicenses();
+      const result = await service.getUserAccountLicenses();
 
       // Assert
       expect(result).toEqual({
@@ -183,7 +183,7 @@ describe('ProjectTeamBuilderService', () => {
       mockFetch.mockResolvedValue(mockResponse);
 
       // Act
-      const result = await service.getAccountLicenses();
+      const result = await service.getUserAccountLicenses();
 
       // Assert
       expect(result).toEqual({
@@ -212,7 +212,7 @@ describe('ProjectTeamBuilderService', () => {
       mockFetch.mockResolvedValue(mockResponse);
 
       // Act
-      const result = await service.getAccountLicenses();
+      const result = await service.getUserAccountLicenses();
 
       // Assert
       expect(result).toEqual({
@@ -233,7 +233,7 @@ describe('ProjectTeamBuilderService', () => {
       mockFetch.mockRejectedValue(new Error('Network error'));
 
       // Act
-      const result = await service.getAccountLicenses();
+      const result = await service.getUserAccountLicenses();
 
       // Assert
       expect(result).toEqual({
@@ -256,7 +256,7 @@ describe('ProjectTeamBuilderService', () => {
       mockFetch.mockRejectedValue(abortError);
 
       // Act
-      const result = await service.getAccountLicenses();
+      const result = await service.getUserAccountLicenses();
 
       // Assert
       expect(result).toEqual({
@@ -282,7 +282,7 @@ describe('ProjectTeamBuilderService', () => {
       mockFetch.mockResolvedValue(mockResponse);
 
       // Act
-      const result = await service.getAccountLicenses();
+      const result = await service.getUserAccountLicenses();
 
       // Assert
       expect(result).toEqual({
@@ -301,7 +301,7 @@ describe('ProjectTeamBuilderService', () => {
       mockFetch.mockRejectedValue('Unknown error string');
 
       // Act
-      const result = await service.getAccountLicenses();
+      const result = await service.getUserAccountLicenses();
 
       // Assert
       expect(result).toEqual({
@@ -326,7 +326,7 @@ describe('ProjectTeamBuilderService', () => {
       mockFetch.mockResolvedValue(mockResponse);
 
       // Act
-      await service.getAccountLicenses();
+      await service.getUserAccountLicenses();
 
       // Assert
       expect(mockFetch).toHaveBeenCalledWith(
@@ -347,14 +347,14 @@ describe('ProjectTeamBuilderService', () => {
       const loggerSpy = jest.spyOn(Logger.prototype, 'log');
 
       // Act
-      await service.getAccountLicenses();
+      await service.getUserAccountLicenses();
 
       // Assert
       expect(loggerSpy).toHaveBeenCalledWith(
-        'Fetching account licenses from: http://localhost:8000/services/uat/project-team-builder/account-licenses',
+        'Fetching user account licenses from: http://localhost:8000/services/uat/project-team-builder/account-licenses',
       );
       expect(loggerSpy).toHaveBeenCalledWith(
-        'Successfully retrieved 1 account licenses',
+        'Successfully retrieved 1 user accounts with licenses',
       );
     });
 
@@ -372,7 +372,7 @@ describe('ProjectTeamBuilderService', () => {
       const loggerSpy = jest.spyOn(Logger.prototype, 'error');
 
       // Act
-      await service.getAccountLicenses();
+      await service.getUserAccountLicenses();
 
       // Assert
       expect(loggerSpy).toHaveBeenCalledWith(

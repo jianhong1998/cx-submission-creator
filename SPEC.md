@@ -17,7 +17,7 @@ This document outlines the business requirements for implementing a new MCP (Mod
 
 ### 1.1 Purpose
 
-To provide AI agents with the capability to fetch user data from the project team builder service, enabling user management and discovery functionalities within the CX ecosystem.
+To provide AI agents with the capability to fetch user data from external services via the User Account Service, enabling user management and discovery functionalities within the CX ecosystem.
 
 ### 1.2 Scope
 
@@ -35,7 +35,7 @@ This requirement covers the development of a single MCP tool that:
 ### 2.1 Primary Objectives
 
 - **User Discovery**: Enable AI agents to discover and list available users in the system
-- **Integration**: Seamlessly integrate with existing project team builder service
+- **Integration**: Seamlessly integrate with external services through the external-services module
 - **Environment Flexibility**: Support different environments through configuration
 - **Error Resilience**: Provide robust error handling for service reliability
 
@@ -55,13 +55,14 @@ This requirement covers the development of a single MCP tool that:
 
 #### FR-001: User Listing Retrieval
 
-**Description**: The tool must be able to fetch user data from the specified endpoint
+**Description**: The tool must be able to fetch user data from external services via the User Account Service
 
-- **Endpoint Path**: `/services/uat/project-team-builder/account-licenses`
+- **Endpoint Path**: `/services/uat/project-team-builder/account-licenses` (accessed through UserAccountService)
 - **Hostname**: Configurable via environment variable (see FR-005)
 - **Method**: GET
 - **Response**: Return complete JSON response to the caller
 - **Authentication**: Handle any required authentication (if applicable)
+- **Service**: Utilizes the external-services module for scalable integration
 
 #### FR-002: Response Processing
 
@@ -82,11 +83,12 @@ This requirement covers the development of a single MCP tool that:
 
 #### FR-004: Tool Integration
 
-**Description**: Implement as a proper MCP tool within the cx-mcp-server
+**Description**: Implement as a proper MCP tool within the cx-mcp-server using the external-services module
 
 - **Tool Name**: `list_users` or similar descriptive name
 - **Tool Description**: Clear description for AI agent understanding
 - **Parameter Validation**: Validate any input parameters (if required)
+- **Service Integration**: Uses UserAccountService from the external-services module
 
 #### FR-005: Environment Configuration
 
@@ -142,17 +144,19 @@ This requirement covers the development of a single MCP tool that:
 
 - **Technology**: NestJS with TypeScript
 - **MCP Integration**: Utilize existing MCP framework in cx-mcp-server
-- **HTTP Client**: Use appropriate HTTP client library (axios, fetch, etc.)
+- **HTTP Client**: Use appropriate HTTP client library (axios, fetch, etc.) through UserAccountService
 - **Configuration**: Use NestJS ConfigService for environment variable management
+- **Module Architecture**: Leverage the external-services module for scalable external API integration
 
 ### 5.2 Data Flow
 
 1. AI agent requests user listing through MCP tool
 2. Tool validates request parameters (if any)
-3. Tool constructs endpoint URL using configured hostname
-4. Tool makes HTTP GET request to external endpoint
-5. Tool processes response or error
-6. Tool returns formatted response to AI agent
+3. Tool calls UserAccountService.getUserAccountLicenses() method
+4. UserAccountService constructs endpoint URL using configured hostname
+5. UserAccountService makes HTTP GET request to external endpoint
+6. UserAccountService processes response or error
+7. Tool returns formatted response to AI agent
 
 ### 5.3 Response Schema Specifications
 
@@ -279,10 +283,11 @@ interface AvailableRole {
 
 ### 6.1 External Service Integration
 
-- **Service Path**: `/services/uat/project-team-builder/account-licenses`
+- **Service Path**: `/services/uat/project-team-builder/account-licenses` (accessed via UserAccountService)
 - **Hostname**: Configurable via environment variable
 - **Environment**: Multiple environments supported (local, UAT, production)
 - **Dependencies**: External service availability
+- **Module**: external-services module provides scalable architecture for multiple external API integrations
 
 ### 6.2 Internal Integration
 
@@ -290,6 +295,7 @@ interface AvailableRole {
 - **Configuration**: Use existing NestJS configuration management
 - **Environment Variables**: Follow existing environment variable patterns
 - **Logging**: Integrate with existing logging framework
+- **External Services Module**: Leverage the modular external-services architecture for scalable integration
 
 ---
 
