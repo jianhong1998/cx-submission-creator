@@ -36,6 +36,7 @@ cx-submission-creator/
   - `POST /sse/messages` - Handle JSON-RPC messages via SSE transport
 - **MCP Tools**: User account tools, HTTP tools, and external services integration
 - **External Services Module**: Modular architecture for integrating with multiple external APIs and user account management
+  - Services are organized in `external-services/services/` directory for better maintainability
 
 ### Key Dependencies
 
@@ -148,7 +149,7 @@ The server provides Model Context Protocol integration for AI agents:
 
 - **list_users**: Retrieve all users and their account licenses from external services via the User Account Service
   - Returns comprehensive user information including professional licenses, roles, and account details
-  - Utilizes the external-services module for scalable integration with multiple external APIs
+  - Utilizes the external-services module with services organized in dedicated subdirectories for scalable integration with multiple external APIs
   - No parameters required - fetches all available data
 
 ### MCP Connection

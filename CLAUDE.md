@@ -71,7 +71,8 @@ cd cx-mcp-server && npm run test -- --testPathPattern=filename  # Single test fi
   - CRUD operations for customer experience data
 - **Database Support**: Configurable database types (memory, file, MongoDB, PostgreSQL)
 - **External Services Module**: Modular architecture for integrating with multiple external APIs and systems
-  - **User Account Service**: Manages user account data, licenses, and professional credentials from external services
+  - **Services Directory**: Contains all external service implementations organized by functionality
+  - **User Account Service**: Located in `external-services/services/` - manages user account data, licenses, and professional credentials from external services
 
 ### Key Configuration
 - **TypeScript**: ES2023 target, CommonJS modules, decorators enabled
