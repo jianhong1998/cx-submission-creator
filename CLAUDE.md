@@ -51,7 +51,15 @@ cd cx-mcp-server && npm run test -- --testPathPattern=filename  # Single test fi
 
 ### Project Structure
 - **cx-mcp-server/**: NestJS application (main API server)
+  - **src/**: Source code directory
+    - **external-services/**: External services integration module
+      - **services/**: Service implementations for external integrations
+    - **configs/**: Configuration modules and services
+    - **interfaces/**: TypeScript interfaces and types
+    - **sse/**: Server-Sent Events implementation for MCP transport
 - **docker/local/**: Development Docker configurations
+- **docs/**: Project documentation
+  - **specifications/**: Technical specifications and requirements
 - **docker-compose.yml**: Orchestrates development environment
 
 ### NestJS Application (cx-mcp-server)

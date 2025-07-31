@@ -86,3 +86,36 @@ All development commands are accessible through the Makefile, with Docker Compos
 - **Scalability**: MCP tools now benefit from the modular external services architecture
 
 This refactoring enhances the project's ability to integrate with multiple external services while maintaining clean, descriptive naming conventions and modular architecture.
+
+## 2025-07-31 - Folder Structure Organization and Documentation Updates
+
+### Folder Structure Reorganization
+- **Services Directory**: Organized external service implementations under `external-services/services/` subdirectory
+- **User Account Service**: Moved `user-account.service.ts` and `user-account.service.spec.ts` to the dedicated services folder
+- **Enhanced Organization**: Improved project structure for better maintainability and scalability
+
+### Project Structure Updates
+- **Source Code Organization**: 
+  - `src/external-services/` - External services integration module
+  - `src/external-services/services/` - Service implementations for external integrations
+  - `src/configs/` - Configuration modules and services
+  - `src/configs/mcp/` - MCP-specific configurations
+  - `src/interfaces/` - TypeScript interfaces and types
+  - `src/sse/` - Server-Sent Events implementation for MCP transport
+- **Documentation Structure**:
+  - `docs/` - Project documentation directory
+  - `docs/specifications/` - Technical specifications and requirements
+  - `docs/CHANGE_LOG.md` - Development history and changes
+
+### Documentation Updates
+- **CLAUDE.md**: Updated project structure section to reflect new folder organization
+- **README.md**: Enhanced project structure diagram with detailed folder hierarchy
+- **Architecture Documentation**: Improved clarity of module organization and service locations
+
+### Benefits of New Structure
+- **Better Organization**: Clear separation of concerns with dedicated service directories
+- **Scalability**: Easier to add new external service integrations
+- **Maintainability**: Logical grouping of related files and configurations
+- **Developer Experience**: Clearer navigation and understanding of codebase structure
+
+This reorganization maintains all existing functionality while providing a more intuitive and scalable project structure for future development.

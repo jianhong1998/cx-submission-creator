@@ -8,6 +8,12 @@ A Customer Experience (CX) submission creator project featuring a NestJS-based M
 cx-submission-creator/
 ├── cx-mcp-server/           # NestJS application (main API server)
 │   ├── src/                 # Source code
+│   │   ├── external-services/  # External services integration module
+│   │   │   └── services/    # Service implementations for external integrations
+│   │   ├── configs/         # Configuration modules and services
+│   │   │   └── mcp/         # MCP-specific configurations
+│   │   ├── interfaces/      # TypeScript interfaces and types
+│   │   └── sse/             # Server-Sent Events implementation for MCP transport
 │   ├── test/                # Test files
 │   ├── package.json         # Node.js dependencies
 │   ├── tsconfig.json        # TypeScript configuration
@@ -15,6 +21,9 @@ cx-submission-creator/
 │   └── Dockerfile           # Docker configuration for development
 ├── docker/
 │   └── local/               # Local development Docker configurations
+├── docs/                    # Project documentation
+│   ├── specifications/      # Technical specifications and requirements
+│   └── CHANGE_LOG.md        # Development history and changes
 ├── docker-compose.yml       # Docker Compose orchestration
 ├── Makefile                 # Development commands
 ├── CLAUDE.md               # Claude Code instructions
@@ -36,7 +45,8 @@ cx-submission-creator/
   - `POST /sse/messages` - Handle JSON-RPC messages via SSE transport
 - **MCP Tools**: User account tools, HTTP tools, and external services integration
 - **External Services Module**: Modular architecture for integrating with multiple external APIs and user account management
-  - Services are organized in `external-services/services/` directory for better maintainability
+  - **Services Directory**: `external-services/services/` contains organized service implementations for external integrations
+  - **User Account Service**: Located in `external-services/services/user-account.service.ts` for user account data and license management
 
 ### Key Dependencies
 
