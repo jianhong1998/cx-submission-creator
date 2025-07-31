@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Common Development Commands
 
 ### Docker Development (Recommended)
+
 ```bash
 # Start development environment with auto-rebuild
 make up/build
@@ -22,6 +23,7 @@ make down/clean
 ```
 
 ### NestJS Development (cx-mcp-server)
+
 ```bash
 # Install dependencies
 cd cx-mcp-server && npm ci
@@ -36,7 +38,7 @@ cd cx-mcp-server && npm run build
 
 # Linting and formatting
 make lint          # Check lint issues
-make lint/fix      # Fix lint issues automatically  
+make lint/fix      # Fix lint issues automatically
 make format        # Format code with Prettier
 
 # Testing
@@ -50,6 +52,7 @@ cd cx-mcp-server && npm run test -- --testPathPattern=filename  # Single test fi
 ## Architecture Overview
 
 ### Project Structure
+
 - **cx-mcp-server/**: NestJS application (main API server)
   - **src/**: Source code directory
     - **external-services/**: External services integration module
@@ -63,16 +66,17 @@ cd cx-mcp-server && npm run test -- --testPathPattern=filename  # Single test fi
 - **docker-compose.yml**: Orchestrates development environment
 
 ### NestJS Application (cx-mcp-server)
+
 - **Framework**: NestJS v11 with TypeScript
 - **Port**: 3002 (default for local development, configurable via APP_PORT environment variable)
 - **API Documentation**: Swagger UI available at `/docs`
 - **Validation**: Global DTO validation using class-validator and class-transformer
 - **Development**: Hot reload enabled with file watching
 - **MCP Integration**: Model Context Protocol server with enhanced SSE transport
-- **MCP Endpoints**: 
+- **MCP Endpoints**:
   - `GET /sse` - Establish MCP SSE connection with proper transport handling
   - `POST /sse/messages` - Handle JSON-RPC messages via SSE transport
-- **MCP Tools**: 
+- **MCP Tools**:
   - HTTP tools for external API interactions
   - Account license tools for user management
   - `list_users` tool for retrieving user account data and professional credentials from external services
@@ -83,6 +87,7 @@ cd cx-mcp-server && npm run test -- --testPathPattern=filename  # Single test fi
   - **User Account Service**: Located in `external-services/services/` - manages user account data, licenses, and professional credentials from external services
 
 ### Key Configuration
+
 - **TypeScript**: ES2023 target, CommonJS modules, decorators enabled
 - **Validation**: Global ValidationPipe with transform, whitelist, and forbidNonWhitelisted
 - **Swagger**: Configured with DocumentBuilder for API documentation
@@ -90,6 +95,7 @@ cd cx-mcp-server && npm run test -- --testPathPattern=filename  # Single test fi
 - **MCP Configuration**: Configurable via McpConfig class with database options and tool definitions
 
 ### Docker Development Setup
+
 - **Base Image**: node:22-alpine
 - **File Watching**: Source code in `cx-mcp-server/src` syncs automatically
 - **Auto-restart**: Application restarts when package.json changes
@@ -110,23 +116,23 @@ cd cx-mcp-server && npm run test -- --testPathPattern=filename  # Single test fi
 ## MCP Tools Available
 
 ### User Account Tools
+
 - **list_users**: Retrieve all users and their account licenses from external services via the User Account Service
   - Returns comprehensive user information including professional licenses, roles, and account details
   - Utilizes the external-services module for scalable integration with multiple external APIs
   - No parameters required - fetches all available data
 
 ### HTTP Tools
+
 - Generic HTTP request capabilities for external API interactions
 - Support for various HTTP methods and data formats
 
 ## Development Best Practices
+
 - Always format code with prettier or command `make format`
 
-## Code Quality Guidelines
-- Always use descriptive variable names
-
-## Development Principles
-- Always follow SOLID principle and DRY code principle
-
-## Typing Guidelines
-- Never use type any in the project, should always handle proper typing
+## Commit Message Guidelines
+- **STRICTLY NO Claude attribution**: Never include "Generated with Claude", "Claude Code", or "Co-Authored-By: Claude" in commit messages
+- **Clean commit messages only**: Commit messages should contain only the actual change description without AI tool attribution
+- **Follow conventional commit format**: Use feat:, fix:, refactor:, docs:, etc. prefixes where appropriate
+- **Focus on the change, not the tool**: Describe what was changed and why, not how it was created
