@@ -6,8 +6,9 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import { getAllHttpTools } from './tools/http.tools';
+import { getAllTools } from './tools/http.tools';
 import { GetDataDto, HttpResponseDto } from './dto/http.dto';
+import { UserAccountService } from '../../external-services/services/user-account.service';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 
@@ -17,9 +18,12 @@ export class McpService {
   private server: Server;
   private readonly cxServerHost: string;
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private userAccountService: UserAccountService,
+  ) {
     this.cxServerHost = this.configService.get<string>(
-      'APP_CX_SERVER_HOST',
+      'BACKEND_HOSTNAME',
       'http://localhost:3000',
     );
     this.server = new Server(
@@ -43,7 +47,7 @@ export class McpService {
   private setupToolHandlers(): void {
     this.server.setRequestHandler(ListToolsRequestSchema, () => {
       return {
-        tools: getAllHttpTools(),
+        tools: getAllTools(),
       };
     });
 
@@ -54,6 +58,8 @@ export class McpService {
         switch (name) {
           case 'get_data':
             return await this.handleGetData(args);
+          case 'list_users':
+            return await this.handleListUsers();
           default:
             throw new Error(`Unknown tool: ${name}`);
         }
@@ -71,7 +77,7 @@ export class McpService {
     });
   }
 
-  private async handleGetData(args: any) {
+  private async handleGetData(args: unknown) {
     const dto = plainToInstance(GetDataDto, args);
     const errors = await validate(dto);
 
@@ -125,6 +131,25 @@ export class McpService {
     } catch (error) {
       throw new Error(
         `Failed to fetch data: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
+  }
+
+  private async handleListUsers() {
+    try {
+      const result = await this.userAccountService.getUserAccountLicenses();
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      throw new Error(
+        `Failed to list users: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
     }
   }

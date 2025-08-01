@@ -3,13 +3,15 @@ import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
   JSONRPCMessage,
 } from '@modelcontextprotocol/sdk/types.js';
-import { getAllHttpTools } from '../configs/mcp/tools/http.tools';
+import { getAllTools } from '../configs/mcp/tools/http.tools';
 import { GetDataDto, HttpResponseDto } from '../configs/mcp/dto/http.dto';
+import { UserAccountService } from '../external-services/services/user-account.service';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 
@@ -20,9 +22,12 @@ export class SseService {
   private readonly cxServerHost: string;
   private clients = new Map<string, Response>();
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private userAccountService: UserAccountService,
+  ) {
     this.cxServerHost = this.configService.get<string>(
-      'APP_CX_SERVER_HOST',
+      'BACKEND_HOSTNAME',
       'http://localhost:3000',
     );
     this.server = new Server(
@@ -45,7 +50,7 @@ export class SseService {
 
   private setupToolHandlers(): void {
     this.server.setRequestHandler(ListToolsRequestSchema, () => {
-      const tools = getAllHttpTools();
+      const tools = getAllTools();
 
       // Broadcast tool list to SSE clients
       this.sendToAllClients('tools_listed', {
@@ -71,6 +76,9 @@ export class SseService {
         switch (name) {
           case 'get_data':
             result = await this.handleGetData(args);
+            break;
+          case 'list_users':
+            result = await this.handleListUsers();
             break;
           default:
             throw new Error(`Unknown tool: ${name}`);
@@ -203,6 +211,25 @@ export class SseService {
     return null;
   }
 
+  private async handleListUsers() {
+    try {
+      const result = await this.userAccountService.getUserAccountLicenses();
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      throw new Error(
+        `Failed to list users: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
+  }
+
   async start(): Promise<void> {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
@@ -213,6 +240,16 @@ export class SseService {
       serverName: 'cx-mcp-sse-server',
       timestamp: new Date().toISOString(),
     });
+  }
+
+  async connectTransport(transport: SSEServerTransport): Promise<void> {
+    this.logger.log(
+      `Connecting MCP server to SSE transport: ${transport.sessionId}`,
+    );
+    await this.server.connect(transport);
+    this.logger.log(
+      `MCP server connected to transport: ${transport.sessionId}`,
+    );
   }
 
   async stop(): Promise<void> {
@@ -246,6 +283,54 @@ export class SseService {
       response.write(`data: ${JSON.stringify(data)}\n\n`);
     } catch (error) {
       this.logger.error('Failed to send SSE event:', error);
+    }
+  }
+
+  sendMcpInitialization(clientId: string): void {
+    // Send server capabilities and info immediately
+    const serverInfo = {
+      jsonrpc: '2.0',
+      result: {
+        protocolVersion: '2024-11-05',
+        capabilities: {
+          tools: {},
+          logging: {},
+        },
+        serverInfo: {
+          name: 'cx-mcp-sse-server',
+          version: '1.0.0',
+        },
+      },
+    };
+
+    // For SSE MCP, send as data event without wrapping in another event
+    const response = this.clients.get(clientId);
+    if (response) {
+      try {
+        response.write(`data: ${JSON.stringify(serverInfo)}\n\n`);
+        this.logger.log(`Sent MCP server info to client ${clientId}`);
+      } catch (error) {
+        this.logger.error(
+          `Failed to send server info to client ${clientId}:`,
+          error,
+        );
+      }
+    }
+  }
+
+  sendMcpHeartbeat(clientId: string): void {
+    // Send simple heartbeat as SSE comment to keep connection alive
+    const response = this.clients.get(clientId);
+    if (response) {
+      try {
+        response.write(`: heartbeat ${new Date().toISOString()}\n\n`);
+      } catch (error) {
+        this.logger.error(
+          `Failed to send heartbeat to client ${clientId}:`,
+          error,
+        );
+        this.clients.delete(clientId);
+      }
     }
   }
 
@@ -287,5 +372,91 @@ export class SseService {
       connectedClients: this.getConnectedClients(),
       timestamp: new Date().toISOString(),
     };
+  }
+
+  async handleMcpRequest(message: {
+    jsonrpc: string;
+    method: string;
+    params?: unknown;
+    id?: string | number;
+  }): Promise<{
+    jsonrpc: string;
+    result?: unknown;
+    error?: { code: number; message: string };
+    id?: string | number | null;
+  }> {
+    const { method, params, id } = message;
+
+    switch (method) {
+      case 'initialize':
+        return {
+          jsonrpc: '2.0',
+          result: {
+            protocolVersion: '2024-11-05',
+            capabilities: {
+              tools: {},
+              logging: {},
+            },
+            serverInfo: {
+              name: 'cx-mcp-sse-server',
+              version: '1.0.0',
+            },
+          },
+          id,
+        };
+
+      case 'tools/list': {
+        const tools = getAllTools();
+        return {
+          jsonrpc: '2.0',
+          result: { tools },
+          id,
+        };
+      }
+
+      case 'tools/call': {
+        try {
+          const toolParams = params as { name: string; arguments: unknown };
+          const { name, arguments: args } = toolParams;
+          let result: { content: Array<{ type: string; text: string }> };
+
+          switch (name) {
+            case 'get_data':
+              result = await this.handleGetData(args);
+              break;
+            case 'list_users':
+              result = await this.handleListUsers();
+              break;
+            default:
+              throw new Error(`Unknown tool: ${name}`);
+          }
+
+          return {
+            jsonrpc: '2.0',
+            result,
+            id,
+          };
+        } catch (error) {
+          return {
+            jsonrpc: '2.0',
+            error: {
+              code: -32603,
+              message: error instanceof Error ? error.message : 'Unknown error',
+            },
+            id,
+          };
+        }
+      }
+
+      default:
+        return {
+          jsonrpc: '2.0',
+          error: {
+            code: -32601,
+            message: `Method not found: ${method}`,
+          },
+          id,
+        };
+    }
   }
 }
