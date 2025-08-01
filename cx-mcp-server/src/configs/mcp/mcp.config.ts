@@ -46,7 +46,7 @@ export class McpTool {
   description: string;
 
   @IsObject()
-  inputSchema: Record<string, any>;
+  inputSchema: Record<string, unknown>;
 }
 
 export class McpDatabase {
@@ -61,8 +61,8 @@ export class McpDatabase {
 
   @IsObject()
   @IsOptional()
-  @Transform(({ value }) => (value ?? {}) as Record<string, any>)
-  options?: Record<string, any> = {};
+  @Transform(({ value }) => (value ?? {}) as Record<string, unknown>)
+  options?: Record<string, unknown> = {};
 }
 
 export class McpConfig {

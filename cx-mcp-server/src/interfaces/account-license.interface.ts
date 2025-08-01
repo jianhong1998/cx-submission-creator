@@ -82,7 +82,7 @@ export interface AccountLicensesErrorResponse {
     message: string;
 
     /** Additional error details, if available */
-    details?: any;
+    details?: unknown;
   };
 }
 

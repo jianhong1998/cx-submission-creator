@@ -6,11 +6,11 @@ export class GetDataDto {
 
   @IsObject()
   @IsOptional()
-  queryParams?: Record<string, any>;
+  queryParams?: Record<string, unknown>;
 
   @IsObject()
   @IsOptional()
-  headers?: Record<string, any>;
+  headers?: Record<string, unknown>;
 }
 
 export class HttpResponseDto {

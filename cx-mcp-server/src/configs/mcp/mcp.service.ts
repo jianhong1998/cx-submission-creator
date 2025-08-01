@@ -77,7 +77,7 @@ export class McpService {
     });
   }
 
-  private async handleGetData(args: any) {
+  private async handleGetData(args: unknown) {
     const dto = plainToInstance(GetDataDto, args);
     const errors = await validate(dto);
 

@@ -14,7 +14,7 @@ export class CreateEntityDto {
   entity: string;
 
   @IsObject()
-  data: Record<string, any>;
+  data: Record<string, unknown>;
 }
 
 export class ReadEntityDto {
@@ -27,7 +27,7 @@ export class ReadEntityDto {
 
   @IsObject()
   @IsOptional()
-  filter?: Record<string, any>;
+  filter?: Record<string, unknown>;
 
   @IsNumber()
   @Min(1)
@@ -50,7 +50,7 @@ export class UpdateEntityDto {
   id: string;
 
   @IsObject()
-  data: Record<string, any>;
+  data: Record<string, unknown>;
 }
 
 export class DeleteEntityDto {
@@ -75,7 +75,7 @@ export class EntityResponseDto {
   entity: string;
 
   @IsObject()
-  data: Record<string, any>;
+  data: Record<string, unknown>;
 
   @IsString()
   createdAt: string;
@@ -97,7 +97,7 @@ export class CrudResponseDto {
 
   @IsObject()
   @IsOptional()
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
 
   @IsArray()
   @ValidateNested({ each: true })
