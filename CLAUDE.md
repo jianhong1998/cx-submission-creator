@@ -45,8 +45,8 @@ make format        # Format code with Prettier
 cd cx-mcp-server && npm run test           # Unit tests
 cd cx-mcp-server && npm run test:watch     # Watch mode
 cd cx-mcp-server && npm run test:cov       # With coverage
-cd cx-mcp-server && npm run test:e2e       # End-to-end tests
-cd cx-mcp-server && npm run test -- --testPathPattern=filename  # Single test file
+cd cx-mcp-server && npm run test:debug     # Debug mode
+# Note: Tests are located in src/ as .spec.ts files alongside source code
 ```
 
 ## Architecture Overview
@@ -55,9 +55,12 @@ cd cx-mcp-server && npm run test -- --testPathPattern=filename  # Single test fi
 
 - **cx-mcp-server/**: NestJS application (main API server)
   - **src/**: Source code directory
+    - **configs/**: Configuration modules and services
+      - **mcp/**: MCP-specific configuration, DTOs, and tools
+        - **dto/**: Data Transfer Objects for MCP operations
+        - **tools/**: MCP tool definitions (account-licenses, HTTP tools)
     - **external-services/**: External services integration module
       - **services/**: Service implementations for external integrations
-    - **configs/**: Configuration modules and services
     - **interfaces/**: TypeScript interfaces and types
     - **sse/**: Server-Sent Events implementation for MCP transport
 - **docker/local/**: Development Docker configurations
@@ -88,18 +91,15 @@ cd cx-mcp-server && npm run test -- --testPathPattern=filename  # Single test fi
 
 ### Key Configuration
 
-- **TypeScript**: ES2023 target, CommonJS modules, decorators enabled
+- **TypeScript**: ES2023 target, CommonJS modules, decorators enabled, strictNullChecks enabled
 - **Validation**: Global ValidationPipe with transform, whitelist, and forbidNonWhitelisted
 - **Swagger**: Configured with DocumentBuilder for API documentation
 - **Environment**: Uses .env file in cx-mcp-server directory
+  - **Required Environment Variables**:
+    - `BACKEND_HOSTNAME`: Backend service URL (required for external service integration)
+    - `APP_PORT`: Application port (defaults to 3002)
+    - `NODE_ENV`: Environment mode (defaults to 'development')
 - **MCP Configuration**: Configurable via McpConfig class with database options and tool definitions
-
-### Docker Development Setup
-
-- **Base Image**: node:22-alpine
-- **File Watching**: Source code in `cx-mcp-server/src` syncs automatically
-- **Auto-restart**: Application restarts when package.json changes
-- **Port Mapping**: Host port configured via APP_PORT environment variable
 
 ## Development Workflow
 
@@ -132,6 +132,7 @@ cd cx-mcp-server && npm run test -- --testPathPattern=filename  # Single test fi
 - Always format code with prettier or command `make format`
 
 ## Commit Message Guidelines
+
 - **STRICTLY NO Claude attribution**: Never include "Generated with Claude", "Claude Code", or "Co-Authored-By: Claude" in commit messages
 - **Clean commit messages only**: Commit messages should contain only the actual change description without AI tool attribution
 - **Follow conventional commit format**: Use feat:, fix:, refactor:, docs:, etc. prefixes where appropriate
