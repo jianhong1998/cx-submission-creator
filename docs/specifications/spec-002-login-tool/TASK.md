@@ -15,12 +15,13 @@ This document outlines the detailed implementation plan for the `login_as_user` 
    - Review UserAccountService error handling patterns
    - Examine existing MCP tool registration patterns
 
-2. **Discover authentication endpoints**
-   - Identify backend authentication API endpoints
-   - Understand session token/cookie mechanisms
-   - Document authentication request/response formats
-   - Analyze session-based authentication patterns
-   - Review existing 403 NOT_LOGGED_IN error patterns
+2. **Discover authentication endpoints** ⚠️  **CRITICAL INVESTIGATION REQUIRED**
+   - **HIGH PRIORITY**: Identify backend authentication API endpoint path and HTTP method
+   - **HIGH PRIORITY**: Determine authentication request payload format (JSON schema)
+   - **HIGH PRIORITY**: Document authentication response payload format and success/error schemas
+   - **HIGH PRIORITY**: Understand session token/cookie mechanisms from backend response
+   - Analyze session-based authentication patterns from existing code
+   - Review existing 403 NOT_LOGGED_IN error patterns in current services
 
 3. **Review security requirements**
    - Analyze existing security patterns
@@ -28,12 +29,16 @@ This document outlines the detailed implementation plan for the `login_as_user` 
    - Document security constraints and considerations
 
 #### Deliverables
-- Authentication endpoint documentation
-- Session mechanism analysis report
+- **INVESTIGATION REQUIRED**: Authentication endpoint documentation (path, method, request/response format)
+- **INVESTIGATION REQUIRED**: Session mechanism analysis report (token/cookie format)
 - Security requirements checklist
+- Backend service integration specification
 
 #### Acceptance Criteria
-- [ ] Authentication endpoint identified and documented
+- [ ] **INVESTIGATION REQUIRED**: Authentication endpoint path and HTTP method identified
+- [ ] **INVESTIGATION REQUIRED**: Authentication request payload format documented
+- [ ] **INVESTIGATION REQUIRED**: Authentication response format and session mechanism documented
+- [ ] **INVESTIGATION REQUIRED**: Error response formats from backend documented
 - [ ] Session management mechanism understood
 - [ ] Security requirements documented and approved
 
@@ -42,12 +47,14 @@ This document outlines the detailed implementation plan for the `login_as_user` 
 ### Phase 2: Foundation (Week 1-2)
 **Objective**: Set up basic infrastructure and service skeleton
 
+⚠️  **PREREQUISITE**: Phase 2 cannot begin until authentication endpoint investigation from Phase 1 is completed
+
 #### Tasks
-1. **Create authentication DTOs and interfaces**
-   - `LoginAsUserDto` for input validation
-   - `AuthenticationResponse` interface
-   - `AuthenticationError` interface
-   - `SessionData` interface
+1. **Create authentication DTOs and interfaces** (Based on investigation results)
+   - `LoginAsUserDto` for input validation (depends on backend request format)
+   - `AuthenticationResponse` interface (depends on backend response format)
+   - `AuthenticationError` interface (depends on backend error format)
+   - `SessionData` interface (depends on session mechanism analysis)
 
 2. **Set up AuthenticationService skeleton**
    - Create service class in `external-services/services/`
@@ -56,10 +63,10 @@ This document outlines the detailed implementation plan for the `login_as_user` 
    - Follow UserAccountService pattern as template
    - Include fetch-based HTTP client pattern
 
-3. **Extend AppConfigService**
-   - Add authentication URL construction method
+3. **Extend AppConfigService** (Based on investigation results)
+   - Add authentication URL construction method (depends on endpoint path discovery)
    - Follow existing URL pattern conventions
-   - Add necessary environment variable support
+   - Add necessary environment variable support (depends on URL format)
 
 4. **Create test file structure**
    - Set up unit test files for all new components
@@ -525,13 +532,54 @@ export class SessionManager {
 | 5: Integration & Testing | Week 4 | System integration, testing |
 | 6: Documentation & Deployment | Week 5 | Documentation, deployment prep |
 
+## Critical Investigation Status
+
+### 🔍 REQUIRED INVESTIGATION - BLOCKING IMPLEMENTATION
+
+Before implementation can proceed, the following backend service details must be investigated and documented:
+
+#### 1. Authentication Endpoint Discovery
+- **Status**: ⚠️  **NOT STARTED** - Critical Path Blocker
+- **Required**: Identify the exact API endpoint path for user authentication
+- **Required**: Determine HTTP method (POST, PUT, etc.)
+- **Required**: Discover if endpoint accepts accountUuid or requires different parameters
+
+#### 2. Request Format Investigation  
+- **Status**: ⚠️  **NOT STARTED** - Critical Path Blocker
+- **Required**: Document exact JSON payload format expected by backend
+- **Required**: Identify required headers (Content-Type, Authorization, etc.)
+- **Required**: Determine if accountUuid is the correct parameter name
+
+#### 3. Response Format Investigation
+- **Status**: ⚠️  **NOT STARTED** - Critical Path Blocker  
+- **Required**: Document successful authentication response format
+- **Required**: Identify session token/cookie format and location (headers, body, cookies)
+- **Required**: Document error response format for various failure scenarios
+
+#### 4. Session Mechanism Analysis
+- **Status**: ⚠️  **NOT STARTED** - Critical Path Blocker
+- **Required**: Understand how sessions are maintained (cookies, tokens, headers)
+- **Required**: Determine session expiration mechanism
+- **Required**: Identify how to use session for subsequent authenticated requests
+
+### Investigation Methods Suggested
+1. **API Documentation Review**: Check backend service documentation
+2. **Network Traffic Analysis**: Monitor existing authentication flows
+3. **Backend Team Consultation**: Discuss with backend service maintainers
+4. **Existing Code Analysis**: Review how current system handles authentication/sessions
+
+### Implementation Timeline Impact
+- **Current Status**: Cannot proceed with Phases 2-6 until investigation completes
+- **Estimated Investigation Time**: 1-3 days depending on documentation availability
+- **Critical for Project Success**: 100% blocking - no implementation possible without this information
+
 ## Next Steps
 
-1. Begin Phase 1 with authentication endpoint discovery
-2. Set up project tracking and progress monitoring
+1. **IMMEDIATE PRIORITY**: Complete authentication endpoint investigation (blocks all other work)
+2. Set up project tracking and progress monitoring  
 3. Schedule regular stakeholder check-ins
-4. Establish testing environment and procedures
-5. Begin initial security review planning
+4. Establish testing environment and procedures (after endpoint discovery)
+5. Begin initial security review planning (after endpoint discovery)
 
 ---
 

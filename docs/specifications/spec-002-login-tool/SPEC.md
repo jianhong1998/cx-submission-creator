@@ -366,11 +366,11 @@ graph TD
 ## 9. Assumptions and Dependencies
 
 ### Technical Assumptions
-1. **External Authentication Endpoint**: Assumes external service provides REST API endpoint for user authentication
-2. **Session-Based Authentication**: Assumes backend uses session-based authentication (cookies/tokens)
+1. **External Authentication Endpoint**: **REQUIRES INVESTIGATION** - External service endpoint path, request format, and response format need to be discovered
+2. **Session-Based Authentication**: **REQUIRES INVESTIGATION** - Backend session mechanism (cookies/tokens) format needs to be analyzed
 3. **AccountUuid Validity**: Assumes accountUuid from `list_users` is valid for authentication
 4. **Network Connectivity**: Assumes reliable network connectivity to external services
-5. **Environment Configuration**: Assumes BACKEND_HOSTNAME environment variable includes authentication endpoints
+5. **Environment Configuration**: **REQUIRES INVESTIGATION** - Authentication endpoint URL construction method needs to be determined
 
 ### Business Assumptions
 1. **User Consent**: Assumes users have consented to AI agent impersonation
@@ -381,9 +381,9 @@ graph TD
 ### Dependencies
 
 #### External Dependencies
-- **Backend Authentication Service**: External service must provide authentication endpoint
+- **Backend Authentication Service**: **REQUIRES INVESTIGATION** - Authentication endpoint discovery and API specification needed
 - **Network Infrastructure**: Reliable network connectivity required
-- **Environment Configuration**: Proper configuration of BACKEND_HOSTNAME required
+- **Environment Configuration**: **REQUIRES INVESTIGATION** - Authentication endpoint URL configuration method needs to be determined
 
 #### Internal Dependencies
 - **Existing MCP Infrastructure**: Depends on current MCP server implementation
@@ -399,10 +399,11 @@ graph TD
 - **Jest**: For unit and integration testing
 
 ### Critical Path Dependencies
-1. **Authentication Endpoint Discovery**: Must identify correct external authentication endpoint
-2. **Session Token Format**: Must understand session token/cookie format from backend
-3. **Error Response Format**: Must understand error response formats from backend
-4. **Testing Environment**: Requires test environment with working authentication service
+1. **Authentication Endpoint Discovery**: **HIGH PRIORITY INVESTIGATION REQUIRED** - Must identify correct external authentication endpoint path and HTTP method
+2. **Request/Response Format**: **HIGH PRIORITY INVESTIGATION REQUIRED** - Must understand authentication request payload format and response schema
+3. **Session Token Format**: **HIGH PRIORITY INVESTIGATION REQUIRED** - Must understand session token/cookie format from backend
+4. **Error Response Format**: **INVESTIGATION REQUIRED** - Must understand error response formats from backend
+5. **Testing Environment**: Requires test environment with working authentication service
 
 ---
 
