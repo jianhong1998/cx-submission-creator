@@ -2,134 +2,46 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Common Development Commands
+## Project Documentation
 
-### Docker Development (Recommended)
+For detailed project information, refer to the organized documentation in `docs/project/`:
 
-```bash
-# Start development environment with auto-rebuild
-make up/build
-# or
-docker-compose up --build
-
-# Start without rebuild
-make up
-
-# Stop services and clean images
-make down
-
-# Complete cleanup (services, volumes, images)
-make down/clean
-```
-
-### NestJS Development (cx-mcp-server)
-
-```bash
-# Install dependencies
-cd cx-mcp-server && npm ci
-# or from root
-make install
-
-# Development with hot reload
-cd cx-mcp-server && npm run start:dev
-
-# Build application
-cd cx-mcp-server && npm run build
-
-# Linting and formatting
-make lint          # Check lint issues
-make lint/fix      # Fix lint issues automatically
-make format        # Format code with Prettier
-
-# Testing
-cd cx-mcp-server && npm run test           # Unit tests
-cd cx-mcp-server && npm run test:watch     # Watch mode
-cd cx-mcp-server && npm run test:cov       # With coverage
-cd cx-mcp-server && npm run test:debug     # Debug mode
-# Note: Tests are located in src/ as .spec.ts files alongside source code
-```
-
-## Architecture Overview
-
-### Project Structure
-
-- **cx-mcp-server/**: NestJS application (main API server)
-  - **src/**: Source code directory
-    - **configs/**: Configuration modules and services
-      - **mcp/**: MCP-specific configuration, DTOs, and tools
-        - **dto/**: Data Transfer Objects for MCP operations
-        - **tools/**: MCP tool definitions (account-licenses, HTTP tools)
-    - **external-services/**: External services integration module
-      - **services/**: Service implementations for external integrations
-    - **interfaces/**: TypeScript interfaces and types
-    - **sse/**: Server-Sent Events implementation for MCP transport
-- **docker/local/**: Development Docker configurations
-- **docs/**: Project documentation
-  - **specifications/**: Technical specifications and requirements
-- **docker-compose.yml**: Orchestrates development environment
-
-### NestJS Application (cx-mcp-server)
-
-- **Framework**: NestJS v11 with TypeScript
-- **Port**: 3002 (default for local development, configurable via APP_PORT environment variable)
-- **API Documentation**: Swagger UI available at `/docs`
-- **Validation**: Global DTO validation using class-validator and class-transformer
-- **Development**: Hot reload enabled with file watching
-- **MCP Integration**: Model Context Protocol server with enhanced SSE transport
-- **MCP Endpoints**:
-  - `GET /sse` - Establish MCP SSE connection with proper transport handling
-  - `POST /sse/messages` - Handle JSON-RPC messages via SSE transport
-- **MCP Tools**:
-  - HTTP tools for external API interactions
-  - Account license tools for user management
-  - `list_users` tool for retrieving user account data and professional credentials from external services
-  - CRUD operations for customer experience data
-- **Database Support**: Configurable database types (memory, file, MongoDB, PostgreSQL)
-- **External Services Module**: Modular architecture for integrating with multiple external APIs and systems
-  - **Services Directory**: Contains all external service implementations organized by functionality
-  - **User Account Service**: Located in `external-services/services/` - manages user account data, licenses, and professional credentials from external services
-
-### Key Configuration
-
-- **TypeScript**: ES2023 target, CommonJS modules, decorators enabled, strictNullChecks enabled
-- **Validation**: Global ValidationPipe with transform, whitelist, and forbidNonWhitelisted
-- **Swagger**: Configured with DocumentBuilder for API documentation
-- **Environment**: Uses .env file in cx-mcp-server directory
-  - **Required Environment Variables**:
-    - `BACKEND_HOSTNAME`: Backend service URL (required for external service integration)
-    - `APP_PORT`: Application port (defaults to 3002)
-    - `NODE_ENV`: Environment mode (defaults to 'development')
-- **MCP Configuration**: Configurable via McpConfig class with database options and tool definitions
-
-## Development Workflow
-
-1. Use `make up/build` for initial setup or when dependencies change
-2. Use `make up` for subsequent starts
-3. Application runs on http://localhost:3002 (default APP_PORT for local development)
-4. Swagger documentation available at http://localhost:3002/docs
-5. MCP SSE endpoints available for AI agent integration:
-   - `GET http://localhost:3002/sse` - Establish MCP connection
-   - `POST http://localhost:3002/sse/messages` - Send JSON-RPC messages
-6. Code changes in `cx-mcp-server/src` trigger automatic reload
-7. Run `make lint` and `make format` before committing changes
-
-## MCP Tools Available
-
-### User Account Tools
-
-- **list_users**: Retrieve all users and their account licenses from external services via the User Account Service
-  - Returns comprehensive user information including professional licenses, roles, and account details
-  - Utilizes the external-services module for scalable integration with multiple external APIs
-  - No parameters required - fetches all available data
-
-### HTTP Tools
-
-- Generic HTTP request capabilities for external API interactions
-- Support for various HTTP methods and data formats
+- **[001-project-overview.md](docs/project/001-project-overview.md)** - Project description, business context, and goals
+- **[002-architecture.md](docs/project/002-architecture.md)** - System architecture, project structure, and NestJS application details
+- **[003-development-commands.md](docs/project/003-development-commands.md)** - Docker and NestJS development commands
+- **[004-development-workflow.md](docs/project/004-development-workflow.md)** - Standard development process and MCP tool development workflow
+- **[005-mcp-tools.md](docs/project/005-mcp-tools.md)** - Available MCP tools and user management workflow
 
 ## Development Best Practices
 
+### Code Quality
+
 - Always format code with prettier or command `make format`
+- Follow SOLID and DRY principles (per TypeScript best practices)
+- Never use `any` type - maintain strict TypeScript typing
+- Use class-validator for DTO validation following existing patterns
+
+### MCP Tool Development
+
+- Follow existing patterns from UserAccountService for HTTP requests
+- Use standardized response formats for consistency
+- Implement comprehensive error handling with appropriate log levels
+- Include 5-second timeout for external service requests
+- Use dependency injection for service integration
+
+### Testing Strategy
+
+- Unit tests for all service methods
+- Integration tests for complete authentication flows
+- Error scenario testing for edge cases
+- Minimum 90% code coverage for new components
+
+### Security Considerations
+
+- Validate all inputs to prevent injection attacks
+- Use secure session management practices
+- Never expose sensitive authentication details in error messages
+- Log authentication attempts without exposing credentials
 
 ## Commit Message Guidelines
 
@@ -137,3 +49,7 @@ cd cx-mcp-server && npm run test:debug     # Debug mode
 - **Clean commit messages only**: Commit messages should contain only the actual change description without AI tool attribution
 - **Follow conventional commit format**: Use feat:, fix:, refactor:, docs:, etc. prefixes where appropriate
 - **Focus on the change, not the tool**: Describe what was changed and why, not how it was created
+
+## Sub Agent Usage
+
+- Always use sub agents if there are available sub agents that specialised to the task given
