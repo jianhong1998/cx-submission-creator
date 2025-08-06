@@ -179,22 +179,33 @@ This tool is part of the broader customer experience automation initiative and w
 - Service integrates with AppConfigService for URL construction
 - Service follows existing error handling patterns from UserAccountService
 - Service implements 5-second timeout for requests
-- Service handles HTTP status codes appropriately
+- Service handles HTTP status codes appropriately (302 redirects)
+- Service manages cookie-based session handling
 
 **Technical Specifications**:
-- Use existing fetch-based HTTP client pattern
-- Implement AbortController for timeout handling
-- Return standardized response format
+- Use existing fetch-based HTTP client pattern with cookie handling
+- Implement AbortController for timeout handling  
+- Handle HTTP 302 redirects and extract session cookies
+- Return standardized response format including session data
 - Log authentication attempts and results
+- **Endpoint**: `GET ${BACKEND_HOSTNAME}/services/uat/login?uuid=${accountUuid}`
+- **Session Management**: Extract and store `cnx` and `cnx-expires` cookies from response
 
 ### FR-003: Session Management
 **Description**: Manage authentication sessions for subsequent API requests
 
 **Acceptance Criteria**:
-- Authentication response includes session token/cookie
-- Session information is stored for subsequent requests
-- Session expiration is handled gracefully
+- Authentication response includes session cookies (`cnx` and `cnx-expires`)
+- Session cookies are stored and managed for subsequent requests
+- Session expiration (~30 minutes) is handled gracefully
 - Multiple concurrent sessions are supported if needed
+
+**Technical Details**:
+- **Session Format**: HTTP cookies with HttpOnly, SameSite=Strict security flags
+- **Primary Cookie**: `cnx` - contains signed session data
+- **Expiry Cookie**: `cnx-expires` - contains session expiration timestamp
+- **Duration**: Approximately 30 minutes from authentication
+- **Security**: Cookies automatically included in subsequent HTTP requests
 
 ### FR-004: Input Validation
 **Description**: Validate input parameters using class-validator
@@ -232,8 +243,11 @@ This tool is part of the broader customer experience automation initiative and w
   success: true,
   data: {
     accountUuid: string,
-    sessionToken?: string,
-    expiresAt?: string,
+    sessionCookies: {
+      cnx: string,           // Main session cookie value
+      cnxExpires: string     // Session expiration timestamp
+    },
+    redirectLocation: string, // Redirect URL from 302 response
     message: string
   },
   operation: 'login_as_user',
@@ -246,7 +260,7 @@ This tool is part of the broader customer experience automation initiative and w
 {
   success: false,
   error: {
-    type: 'CLIENT_ERROR' | 'SERVER_ERROR' | 'NETWORK_ERROR',
+    type: 'CLIENT_ERROR' | 'SERVER_ERROR' | 'NETWORK_ERROR' | 'TIMEOUT_ERROR',
     statusCode: number,
     message: string,
     details?: unknown
@@ -366,11 +380,11 @@ graph TD
 ## 9. Assumptions and Dependencies
 
 ### Technical Assumptions
-1. **External Authentication Endpoint**: **REQUIRES INVESTIGATION** - External service endpoint path, request format, and response format need to be discovered
-2. **Session-Based Authentication**: **REQUIRES INVESTIGATION** - Backend session mechanism (cookies/tokens) format needs to be analyzed
-3. **AccountUuid Validity**: Assumes accountUuid from `list_users` is valid for authentication
+1. **External Authentication Endpoint**: ✅ **INVESTIGATED** - Endpoint confirmed: `GET /services/uat/login?uuid=<accountUuid>`
+2. **Session-Based Authentication**: ✅ **INVESTIGATED** - Cookie-based session mechanism with `cnx` and `cnx-expires` cookies
+3. **AccountUuid Validity**: ✅ **CONFIRMED** - accountUuid from `list_users` works directly with login endpoint
 4. **Network Connectivity**: Assumes reliable network connectivity to external services
-5. **Environment Configuration**: **REQUIRES INVESTIGATION** - Authentication endpoint URL construction method needs to be determined
+5. **Environment Configuration**: ✅ **INVESTIGATED** - Uses existing `BACKEND_HOSTNAME` environment variable pattern
 
 ### Business Assumptions
 1. **User Consent**: Assumes users have consented to AI agent impersonation
@@ -381,9 +395,9 @@ graph TD
 ### Dependencies
 
 #### External Dependencies
-- **Backend Authentication Service**: **REQUIRES INVESTIGATION** - Authentication endpoint discovery and API specification needed
+- **Backend Authentication Service**: ✅ **CONFIRMED** - Authentication endpoint at `/services/uat/login` confirmed working
 - **Network Infrastructure**: Reliable network connectivity required
-- **Environment Configuration**: **REQUIRES INVESTIGATION** - Authentication endpoint URL configuration method needs to be determined
+- **Environment Configuration**: ✅ **CONFIRMED** - Uses existing BACKEND_HOSTNAME environment variable
 
 #### Internal Dependencies
 - **Existing MCP Infrastructure**: Depends on current MCP server implementation
@@ -399,11 +413,11 @@ graph TD
 - **Jest**: For unit and integration testing
 
 ### Critical Path Dependencies
-1. **Authentication Endpoint Discovery**: **HIGH PRIORITY INVESTIGATION REQUIRED** - Must identify correct external authentication endpoint path and HTTP method
-2. **Request/Response Format**: **HIGH PRIORITY INVESTIGATION REQUIRED** - Must understand authentication request payload format and response schema
-3. **Session Token Format**: **HIGH PRIORITY INVESTIGATION REQUIRED** - Must understand session token/cookie format from backend
-4. **Error Response Format**: **INVESTIGATION REQUIRED** - Must understand error response formats from backend
-5. **Testing Environment**: Requires test environment with working authentication service
+1. **Authentication Endpoint Discovery**: ✅ **COMPLETED** - Endpoint: `GET /services/uat/login?uuid=<accountUuid>`
+2. **Request/Response Format**: ✅ **COMPLETED** - Simple GET request with 302 redirect response including session cookies
+3. **Session Token Format**: ✅ **COMPLETED** - HTTP cookies: `cnx` (session data) and `cnx-expires` (expiration timestamp)
+4. **Error Response Format**: ✅ **COMPLETED** - Endpoint shows lenient behavior (always redirects), session validity determined by subsequent API access
+5. **Testing Environment**: ✅ **CONFIRMED** - Working authentication service at localhost:8000
 
 ---
 
