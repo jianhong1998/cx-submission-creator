@@ -28,6 +28,16 @@ export class AppConfigService {
   }
 
   /**
+   * Get the complete URL for the login endpoint with account UUID
+   * @param accountUuid The UUID of the account to authenticate as
+   * @returns The full URL for the login endpoint
+   */
+  getLoginUrl(accountUuid: string): string {
+    const hostname = this.getBackendHostname();
+    return `${hostname}/services/uat/login?uuid=${accountUuid}`;
+  }
+
+  /**
    * Get the current node environment
    * @returns The current environment (development, production, etc.)
    */
