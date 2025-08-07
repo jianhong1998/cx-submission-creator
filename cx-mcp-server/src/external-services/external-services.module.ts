@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { UserAccountService } from './services/user-account.service';
 import { AuthenticationService } from './services/authentication.service';
 import { AppConfigService } from '../configs/app-config.service';
+import { SessionModule } from '../session/session.module';
 
 /**
  * ExternalServicesModule encapsulates services for interacting with external APIs and systems.
@@ -9,6 +10,7 @@ import { AppConfigService } from '../configs/app-config.service';
  * making it easy to add new external services while maintaining separation of concerns.
  */
 @Module({
+  imports: [SessionModule],
   providers: [UserAccountService, AuthenticationService, AppConfigService],
   exports: [UserAccountService, AuthenticationService],
 })

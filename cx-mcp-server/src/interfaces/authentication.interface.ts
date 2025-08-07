@@ -24,6 +24,9 @@ export interface AuthenticationSuccessResponse {
     /** Account UUID that was authenticated */
     accountUuid: string;
 
+    /** Internal session token for subsequent operations */
+    sessionToken: string;
+
     /** Session cookies extracted from authentication response */
     sessionCookies: {
       /** Main session cookie value (cnx) */

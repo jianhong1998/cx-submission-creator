@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Logger } from '@nestjs/common';
 import { AuthenticationService } from './authentication.service';
 import { AppConfigService } from '../../configs/app-config.service';
+import { SessionManager } from '../../session/session.service';
 import {
   AuthenticationSuccessResponse,
   AuthenticationErrorResponse,
@@ -35,6 +36,7 @@ const createMockResponse = (options: {
 
 describe('AuthenticationService', () => {
   let service: AuthenticationService;
+  let sessionManager: SessionManager;
   let mockFetch: jest.MockedFunction<typeof fetch>;
 
   const mockAccountUuid = '6daa218b-cce4-4495-ae74-877692a6fd63';
@@ -44,6 +46,7 @@ describe('AuthenticationService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthenticationService,
+        SessionManager,
         {
           provide: AppConfigService,
           useValue: {
@@ -57,6 +60,7 @@ describe('AuthenticationService', () => {
     }).compile();
 
     service = module.get<AuthenticationService>(AuthenticationService);
+    sessionManager = module.get<SessionManager>(SessionManager);
     mockFetch = global.fetch as jest.MockedFunction<typeof fetch>;
 
     // Reset all mocks before each test
@@ -65,6 +69,8 @@ describe('AuthenticationService', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    // Clean up session manager intervals
+    sessionManager.onModuleDestroy();
   });
 
   it('should be defined', () => {
@@ -103,6 +109,7 @@ describe('AuthenticationService', () => {
         success: true,
         data: {
           accountUuid: mockAccountUuid,
+          sessionToken: expect.any(String) as string,
           sessionCookies: {
             cnx: 's%3Asession-token.signature',
             cnxExpires: '1640952000000',
@@ -114,6 +121,14 @@ describe('AuthenticationService', () => {
         timestamp: expect.any(String) as string,
       };
       expect(result).toEqual(expectedResult);
+
+      // Verify session was created in session manager
+      const sessionData = sessionManager.getSession(
+        (result as AuthenticationSuccessResponse).data.sessionToken,
+      );
+      expect(sessionData).toBeDefined();
+      expect(sessionData?.accountUuid).toBe(mockAccountUuid);
+      expect(sessionData?.cnx).toBe('s%3Asession-token.signature');
     });
 
     it('should handle authentication failure when no cookies are present', async () => {
@@ -361,6 +376,7 @@ describe('AuthenticationService', () => {
         success: true,
         data: {
           accountUuid: mockAccountUuid,
+          sessionToken: expect.any(String) as string,
           sessionCookies: {
             cnx: 's%3Acomplex-session.signature',
             cnxExpires: '1640952000000',
@@ -522,6 +538,184 @@ describe('AuthenticationService', () => {
         'Session validation error',
         networkError,
       );
+    });
+  });
+
+  describe('session management integration', () => {
+    it('should validate session using internal token', () => {
+      // Arrange - Create a session first
+      const sessionData = {
+        cnx: 'session-token-value',
+        cnxExpires: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+        accountUuid: mockAccountUuid,
+      };
+      const sessionToken = sessionManager.createSession(
+        mockAccountUuid,
+        sessionData,
+      );
+
+      // Act
+      const isValid = service.validateSessionByToken(sessionToken);
+
+      // Assert
+      expect(isValid).toBe(true);
+    });
+
+    it('should return false for invalid session token', () => {
+      // Act
+      const isValid = service.validateSessionByToken('invalid-token');
+
+      // Assert
+      expect(isValid).toBe(false);
+    });
+
+    it('should get session data by token', () => {
+      // Arrange
+      const sessionData = {
+        cnx: 'session-token-value',
+        cnxExpires: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+        accountUuid: mockAccountUuid,
+      };
+      const sessionToken = sessionManager.createSession(
+        mockAccountUuid,
+        sessionData,
+      );
+
+      // Act
+      const retrievedData = service.getSessionData(sessionToken);
+
+      // Assert
+      expect(retrievedData).toEqual(sessionData);
+    });
+
+    it('should refresh session successfully', () => {
+      // Arrange
+      const sessionData = {
+        cnx: 'session-token-value',
+        cnxExpires: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+        accountUuid: mockAccountUuid,
+      };
+      const sessionToken = sessionManager.createSession(
+        mockAccountUuid,
+        sessionData,
+      );
+
+      // Act
+      const refreshed = service.refreshSession(sessionToken);
+
+      // Assert
+      expect(refreshed).toBe(true);
+      expect(service.validateSessionByToken(sessionToken)).toBe(true);
+    });
+
+    it('should delete session successfully', () => {
+      // Arrange
+      const sessionData = {
+        cnx: 'session-token-value',
+        cnxExpires: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+        accountUuid: mockAccountUuid,
+      };
+      const sessionToken = sessionManager.createSession(
+        mockAccountUuid,
+        sessionData,
+      );
+
+      // Act
+      service.deleteSession(sessionToken);
+
+      // Assert
+      expect(service.validateSessionByToken(sessionToken)).toBe(false);
+    });
+
+    it('should get active sessions', () => {
+      // Arrange - Create multiple sessions
+      const sessionData1 = {
+        cnx: 'session-token-1',
+        cnxExpires: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+        accountUuid: 'user1',
+      };
+      const sessionData2 = {
+        cnx: 'session-token-2',
+        cnxExpires: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+        accountUuid: 'user2',
+      };
+
+      sessionManager.createSession('user1', sessionData1);
+      sessionManager.createSession('user2', sessionData2);
+
+      // Act
+      const activeSessions = service.getActiveSessions();
+
+      // Assert
+      expect(activeSessions).toHaveLength(2);
+      expect(activeSessions.some((s) => s.accountUuid === 'user1')).toBe(true);
+      expect(activeSessions.some((s) => s.accountUuid === 'user2')).toBe(true);
+    });
+
+    it('should handle session creation during authentication', async () => {
+      // Arrange
+      const mockResponse = createMockResponse({
+        status: 302,
+        statusText: 'Found',
+        headers: {
+          'set-cookie':
+            'cnx=s%3Anew-session.signature; Path=/; Expires=Wed, 01 Jan 2025 12:00:00 GMT; HttpOnly; SameSite=Strict',
+          location: '/',
+        },
+      });
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await service.authenticateAsUser(mockAccountUuid);
+
+      // Assert
+      expect(result.success).toBe(true);
+      if (result.success) {
+        const sessionData = service.getSessionData(result.data.sessionToken);
+        expect(sessionData).toBeDefined();
+        expect(sessionData?.accountUuid).toBe(mockAccountUuid);
+        expect(sessionData?.cnx).toBe('s%3Anew-session.signature');
+      }
+    });
+
+    it('should support concurrent sessions for different users', async () => {
+      // Arrange - Mock multiple authentication responses
+      const mockResponse1 = createMockResponse({
+        status: 302,
+        headers: {
+          'set-cookie': 'cnx=session1; Path=/',
+          location: '/',
+        },
+      });
+      const mockResponse2 = createMockResponse({
+        status: 302,
+        headers: {
+          'set-cookie': 'cnx=session2; Path=/',
+          location: '/',
+        },
+      });
+
+      // Act - Authenticate two different users
+      mockFetch.mockResolvedValueOnce(mockResponse1);
+      const result1 = await service.authenticateAsUser('user1');
+
+      mockFetch.mockResolvedValueOnce(mockResponse2);
+      const result2 = await service.authenticateAsUser('user2');
+
+      // Assert
+      expect(result1.success && result2.success).toBe(true);
+      if (result1.success && result2.success) {
+        expect(result1.data.sessionToken).not.toBe(result2.data.sessionToken);
+
+        const activeSessions = service.getActiveSessions();
+        expect(activeSessions).toHaveLength(2);
+        expect(activeSessions.some((s) => s.accountUuid === 'user1')).toBe(
+          true,
+        );
+        expect(activeSessions.some((s) => s.accountUuid === 'user2')).toBe(
+          true,
+        );
+      }
     });
   });
 });

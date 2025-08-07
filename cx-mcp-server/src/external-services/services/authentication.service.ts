@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AppConfigService } from '../../configs/app-config.service';
+import { SessionManager } from '../../session/session.service';
 import {
   AuthenticationResponse,
   AuthenticationSuccessResponse,
@@ -17,7 +18,10 @@ export class AuthenticationService {
   private readonly logger = new Logger(AuthenticationService.name);
   private readonly timeout = 5000; // 5 seconds timeout as per requirements
 
-  constructor(private readonly appConfigService: AppConfigService) {}
+  constructor(
+    private readonly appConfigService: AppConfigService,
+    private readonly sessionManager: SessionManager,
+  ) {}
 
   /**
    * Authenticates a user by their account UUID using the external authentication service.
@@ -59,6 +63,12 @@ export class AuthenticationService {
       if (sessionData) {
         this.logger.log(`Successfully authenticated account: ${accountUuid}`);
 
+        // Store session in SessionManager
+        const sessionToken = this.sessionManager.createSession(
+          accountUuid,
+          sessionData,
+        );
+
         // Extract redirect location from Location header
         const redirectLocation = response.headers.get('location') || '';
 
@@ -66,6 +76,7 @@ export class AuthenticationService {
           success: true,
           data: {
             accountUuid,
+            sessionToken, // Include the internal session token
             sessionCookies: {
               cnx: sessionData.cnx,
               cnxExpires: sessionData.cnxExpires,
@@ -87,7 +98,54 @@ export class AuthenticationService {
   }
 
   /**
-   * Validates if a session is still active and valid
+   * Validates if a session is still active and valid using session token
+   * @param sessionToken - The internal session token to validate
+   * @returns boolean - True if session is valid, false otherwise
+   */
+  validateSessionByToken(sessionToken: string): boolean {
+    return this.sessionManager.isSessionValid(sessionToken);
+  }
+
+  /**
+   * Gets session data by session token
+   * @param sessionToken - The internal session token
+   * @returns SessionData | null - Session data if valid, null otherwise
+   */
+  getSessionData(sessionToken: string): SessionData | null {
+    return this.sessionManager.getSession(sessionToken);
+  }
+
+  /**
+   * Refreshes a session extending its expiration time
+   * @param sessionToken - The internal session token to refresh
+   * @returns boolean - True if refresh successful, false otherwise
+   */
+  refreshSession(sessionToken: string): boolean {
+    return this.sessionManager.refreshSession(sessionToken);
+  }
+
+  /**
+   * Deletes a session from the session manager
+   * @param sessionToken - The internal session token to delete
+   */
+  deleteSession(sessionToken: string): void {
+    this.sessionManager.deleteSession(sessionToken);
+  }
+
+  /**
+   * Gets all active sessions for monitoring
+   * @returns Array of active session information
+   */
+  getActiveSessions(): Array<{
+    token: string;
+    accountUuid: string;
+    expiresAt: Date;
+  }> {
+    return this.sessionManager.getActiveSessions();
+  }
+
+  /**
+   * Validates if a session is still active and valid using cnx cookie
    * @param cnxToken - The cnx session token to validate
    * @returns Promise<boolean> - True if session is valid, false otherwise
    */
