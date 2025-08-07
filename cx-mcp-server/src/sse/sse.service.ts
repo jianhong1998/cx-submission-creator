@@ -11,7 +11,9 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { getAllTools } from '../configs/mcp/tools/http.tools';
 import { GetDataDto, HttpResponseDto } from '../configs/mcp/dto/http.dto';
+import { LoginAsUserDto } from '../configs/mcp/dto/authentication.dto';
 import { UserAccountService } from '../external-services/services/user-account.service';
+import { AuthenticationService } from '../external-services/services/authentication.service';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 
@@ -25,6 +27,7 @@ export class SseService {
   constructor(
     private configService: ConfigService,
     private userAccountService: UserAccountService,
+    private authenticationService: AuthenticationService,
   ) {
     this.cxServerHost = this.configService.get<string>(
       'BACKEND_HOSTNAME',
@@ -79,6 +82,9 @@ export class SseService {
             break;
           case 'list_users':
             result = await this.handleListUsers();
+            break;
+          case 'login_as_user':
+            result = await this.handleLoginAsUser(args);
             break;
           default:
             throw new Error(`Unknown tool: ${name}`);
@@ -427,6 +433,9 @@ export class SseService {
             case 'list_users':
               result = await this.handleListUsers();
               break;
+            case 'login_as_user':
+              result = await this.handleLoginAsUser(args);
+              break;
             default:
               throw new Error(`Unknown tool: ${name}`);
           }
@@ -457,6 +466,36 @@ export class SseService {
           },
           id,
         };
+    }
+  }
+
+  private async handleLoginAsUser(args: unknown) {
+    const dto = plainToInstance(LoginAsUserDto, args);
+    const errors = await validate(dto);
+
+    if (errors.length > 0) {
+      throw new Error(
+        `Validation failed: ${errors.map((e) => Object.values(e.constraints || {}).join(', ')).join('; ')}`,
+      );
+    }
+
+    try {
+      const result = await this.authenticationService.authenticateAsUser(
+        dto.accountUuid,
+      );
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      throw new Error(
+        `Failed to authenticate as user: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 }

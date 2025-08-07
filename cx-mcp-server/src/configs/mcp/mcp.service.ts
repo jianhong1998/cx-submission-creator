@@ -8,7 +8,9 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { getAllTools } from './tools/http.tools';
 import { GetDataDto, HttpResponseDto } from './dto/http.dto';
+import { LoginAsUserDto } from './dto/authentication.dto';
 import { UserAccountService } from '../../external-services/services/user-account.service';
+import { AuthenticationService } from '../../external-services/services/authentication.service';
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
 
@@ -21,6 +23,7 @@ export class McpService {
   constructor(
     private configService: ConfigService,
     private userAccountService: UserAccountService,
+    private authenticationService: AuthenticationService,
   ) {
     this.cxServerHost = this.configService.get<string>(
       'BACKEND_HOSTNAME',
@@ -60,6 +63,8 @@ export class McpService {
             return await this.handleGetData(args);
           case 'list_users':
             return await this.handleListUsers();
+          case 'login_as_user':
+            return await this.handleLoginAsUser(args);
           default:
             throw new Error(`Unknown tool: ${name}`);
         }
@@ -150,6 +155,36 @@ export class McpService {
     } catch (error) {
       throw new Error(
         `Failed to list users: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
+  }
+
+  private async handleLoginAsUser(args: unknown) {
+    const dto = plainToInstance(LoginAsUserDto, args);
+    const errors = await validate(dto);
+
+    if (errors.length > 0) {
+      throw new Error(
+        `Validation failed: ${errors.map((e) => Object.values(e.constraints || {}).join(', ')).join('; ')}`,
+      );
+    }
+
+    try {
+      const result = await this.authenticationService.authenticateAsUser(
+        dto.accountUuid,
+      );
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+      };
+    } catch (error) {
+      throw new Error(
+        `Failed to authenticate as user: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
     }
   }

@@ -1,4 +1,8 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
+// Import account license tools
+import { getAllAccountLicenseTools } from './account-licenses.tools';
+// Import authentication tools
+import { getAllAuthenticationTools } from './authentication.tools';
 
 export const getDataToolExample: Tool = {
   name: 'get_data',
@@ -25,14 +29,12 @@ export const getDataToolExample: Tool = {
 
 export const getAllHttpTools = (): Tool[] => [getDataToolExample];
 
-// Import account license tools
-import { getAllAccountLicenseTools } from './account-licenses.tools';
-
 /**
- * Get all available tools (HTTP tools + Account License tools)
+ * Get all available tools (HTTP tools + Account License tools + Authentication tools)
  * @returns Array of all available MCP tools
  */
 export const getAllTools = (): Tool[] => [
   ...getAllHttpTools(),
   ...getAllAccountLicenseTools(),
+  ...getAllAuthenticationTools(),
 ];

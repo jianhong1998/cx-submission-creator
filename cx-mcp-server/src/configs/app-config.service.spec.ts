@@ -59,6 +59,19 @@ describe('AppConfigService', () => {
     });
   });
 
+  describe('getLoginUrl', () => {
+    it('should return the complete login URL with account UUID', () => {
+      const mockHostname = 'http://localhost:8000';
+      const mockAccountUuid = '6daa218b-cce4-4495-ae74-877692a6fd63';
+      jest.spyOn(configService, 'get').mockReturnValue(mockHostname);
+
+      const result = service.getLoginUrl(mockAccountUuid);
+      expect(result).toBe(
+        `http://localhost:8000/services/uat/login?uuid=${mockAccountUuid}`,
+      );
+    });
+  });
+
   describe('getNodeEnv', () => {
     it('should return the configured NODE_ENV', () => {
       jest.spyOn(configService, 'get').mockReturnValue('production');

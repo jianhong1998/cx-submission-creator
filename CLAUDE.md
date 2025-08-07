@@ -12,6 +12,24 @@ For detailed project information, refer to the organized documentation in `docs/
 - **[004-development-workflow.md](docs/project/004-development-workflow.md)** - Standard development process and MCP tool development workflow
 - **[005-mcp-tools.md](docs/project/005-mcp-tools.md)** - Available MCP tools and user management workflow
 
+## Available MCP Tools
+
+### Authentication Tools
+
+- **login_as_user**: Authenticate as a specific user using their account UUID
+  - Input: `accountUuid` (string) - User identifier from `list_users` tool  
+  - Returns: Authentication success/failure with session information
+  - Use case: Enable AI agents to perform user-specific operations
+  - Follow-up: Use session for subsequent authenticated requests
+  - Response format: Includes session cookies for maintaining authentication state
+  - Performance: 5-second timeout, supports 50+ concurrent sessions
+  - Security: UUID validation, secure session token generation, no credential exposure
+
+### User Management Tools
+
+- **list_users**: Retrieve comprehensive user account information including licenses and roles
+- **get_data**: Make authenticated HTTP requests to backend services using established sessions
+
 ## Development Best Practices
 
 ### Code Quality

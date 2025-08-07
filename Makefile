@@ -47,3 +47,7 @@ install:
 	@npm ci
 	@cd cx-mcp-server && \
 		npm ci
+
+test:
+	@cd cx-mcp-server && \
+		npm run test
