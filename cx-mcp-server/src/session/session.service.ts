@@ -1,6 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { SessionData } from '../interfaces/authentication.interface';
 
+/**
+ * SessionManager service for managing authentication sessions.
+ * Provides in-memory session storage with automatic cleanup and expiration handling.
+ * Supports concurrent sessions and secure token generation.
+ */
 @Injectable()
 export class SessionManager {
   private readonly logger = new Logger(SessionManager.name);
@@ -20,12 +25,21 @@ export class SessionManager {
     );
   }
 
+  /**
+   * NestJS lifecycle hook for cleanup when module is destroyed
+   */
   onModuleDestroy() {
     if (this.cleanupInterval) {
       clearInterval(this.cleanupInterval);
     }
   }
 
+  /**
+   * Creates a new session with the given account UUID and session data
+   * @param accountUuid - The UUID of the account this session belongs to
+   * @param sessionData - The session data containing authentication cookies
+   * @returns string - The generated session token for internal use
+   */
   createSession(accountUuid: string, sessionData: SessionData): string {
     const sessionToken = this.generateSessionToken();
     const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
@@ -42,6 +56,11 @@ export class SessionManager {
     return sessionToken;
   }
 
+  /**
+   * Retrieves session data by session token, automatically removing expired sessions
+   * @param sessionToken - The session token to look up
+   * @returns SessionData if session exists and is valid, null otherwise
+   */
   getSession(sessionToken: string): SessionData | null {
     const sessionWithExpiry = this.sessions.get(sessionToken);
 
@@ -63,6 +82,10 @@ export class SessionManager {
     return sessionData;
   }
 
+  /**
+   * Deletes a session by its token
+   * @param sessionToken - The session token to delete
+   */
   deleteSession(sessionToken: string): void {
     const deleted = this.sessions.delete(sessionToken);
     if (deleted) {
@@ -70,6 +93,10 @@ export class SessionManager {
     }
   }
 
+  /**
+   * Removes all expired sessions from memory
+   * Called automatically every 5 minutes
+   */
   cleanupExpiredSessions(): void {
     const now = Date.now();
     let cleanedCount = 0;
@@ -86,14 +113,28 @@ export class SessionManager {
     }
   }
 
+  /**
+   * Checks if a session is valid and not expired
+   * @param sessionToken - The session token to validate
+   * @returns boolean - True if session exists and is valid
+   */
   isSessionValid(sessionToken: string): boolean {
     return this.getSession(sessionToken) !== null;
   }
 
+  /**
+   * Gets the total number of active sessions in memory
+   * @returns number - Count of sessions currently stored
+   */
   getSessionCount(): number {
     return this.sessions.size;
   }
 
+  /**
+   * Extends the expiration time of a session by 30 minutes
+   * @param sessionToken - The session token to refresh
+   * @returns boolean - True if session was refreshed, false if not found or expired
+   */
   refreshSession(sessionToken: string): boolean {
     const sessionWithExpiry = this.sessions.get(sessionToken);
 
@@ -113,6 +154,11 @@ export class SessionManager {
     return true;
   }
 
+  /**
+   * Generates a secure, unique session token
+   * Format: sess_{timestamp}_{randomString1}{randomString2}
+   * @returns string - The generated session token
+   */
   private generateSessionToken(): string {
     // Generate a secure random token
     const timestamp = Date.now().toString();
@@ -122,7 +168,10 @@ export class SessionManager {
     return `sess_${timestamp}_${randomBytes}${moreRandomBytes}`;
   }
 
-  // Get all active sessions (for monitoring/debugging)
+  /**
+   * Gets all active (non-expired) sessions for monitoring purposes
+   * @returns Array of active session information with truncated tokens for security
+   */
   getActiveSessions(): Array<{
     token: string;
     accountUuid: string;
