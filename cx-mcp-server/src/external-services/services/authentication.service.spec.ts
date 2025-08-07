@@ -48,6 +48,9 @@ describe('AuthenticationService', () => {
           provide: AppConfigService,
           useValue: {
             getLoginUrl: jest.fn().mockReturnValue(mockLoginUrl),
+            getBackendHostname: jest
+              .fn()
+              .mockReturnValue('http://localhost:8000'),
           },
         },
       ],
@@ -366,24 +369,151 @@ describe('AuthenticationService', () => {
   });
 
   describe('validateSession', () => {
-    it('should return false for now (not yet implemented)', async () => {
-      // Arrange & Act
-      const result = await service.validateSession();
+    const mockSessionToken = 's%3Asession-token.signature';
+    const mockValidationUrl =
+      'http://localhost:8000/services/uat/project-team-builder/account-licenses';
+
+    it('should return true for valid session token', async () => {
+      // Arrange
+      const mockResponse = createMockResponse({
+        status: 200,
+        statusText: 'OK',
+      });
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await service.validateSession(mockSessionToken);
+
+      // Assert
+      expect(mockFetch).toHaveBeenCalledWith(mockValidationUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          Cookie: `cnx=${mockSessionToken}`,
+        },
+        signal: expect.any(AbortSignal) as AbortSignal,
+      });
+      expect(result).toBe(true);
+    });
+
+    it('should return false for invalid session token', async () => {
+      // Arrange
+      const mockResponse = createMockResponse({
+        status: 403,
+        statusText: 'Forbidden',
+      });
+      mockFetch.mockResolvedValue(mockResponse);
+
+      // Act
+      const result = await service.validateSession(mockSessionToken);
 
       // Assert
       expect(result).toBe(false);
     });
 
-    it('should log that validation is not implemented', async () => {
+    it('should return false for empty session token', async () => {
+      // Act
+      const result = await service.validateSession('');
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('should return false for null session token', async () => {
+      // Act
+      const result = await service.validateSession(null as unknown as string);
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('should handle network errors during validation', async () => {
       // Arrange
+      mockFetch.mockRejectedValue(new Error('Network error'));
+
+      // Act
+      const result = await service.validateSession(mockSessionToken);
+
+      // Assert
+      expect(result).toBe(false);
+    });
+
+    it('should handle timeout errors during validation', async () => {
+      // Arrange
+      const abortError = new Error('Request aborted');
+      abortError.name = 'AbortError';
+      mockFetch.mockRejectedValue(abortError);
+
+      // Act
+      const result = await service.validateSession(mockSessionToken);
+
+      // Assert
+      expect(result).toBe(false);
+    });
+
+    it('should log successful session validation', async () => {
+      // Arrange
+      const mockResponse = createMockResponse({
+        status: 200,
+        statusText: 'OK',
+      });
+      mockFetch.mockResolvedValue(mockResponse);
       const loggerSpy = jest.spyOn(Logger.prototype, 'log');
 
       // Act
-      await service.validateSession();
+      await service.validateSession(mockSessionToken);
+
+      // Assert
+      expect(loggerSpy).toHaveBeenCalledWith('Session validation successful');
+    });
+
+    it('should log failed session validation', async () => {
+      // Arrange
+      const mockResponse = createMockResponse({
+        status: 401,
+        statusText: 'Unauthorized',
+      });
+      mockFetch.mockResolvedValue(mockResponse);
+      const loggerSpy = jest.spyOn(Logger.prototype, 'warn');
+
+      // Act
+      await service.validateSession(mockSessionToken);
 
       // Assert
       expect(loggerSpy).toHaveBeenCalledWith(
-        'Session validation not yet implemented',
+        'Session validation failed: HTTP 401',
+      );
+    });
+
+    it('should log warning for empty session token', async () => {
+      // Arrange
+      const loggerSpy = jest.spyOn(Logger.prototype, 'warn');
+
+      // Act
+      await service.validateSession('');
+
+      // Assert
+      expect(loggerSpy).toHaveBeenCalledWith(
+        'Session validation failed: No session token provided',
+      );
+    });
+
+    it('should log error for network issues', async () => {
+      // Arrange
+      const networkError = new Error('Network error');
+      mockFetch.mockRejectedValue(networkError);
+      const loggerSpy = jest.spyOn(Logger.prototype, 'error');
+
+      // Act
+      await service.validateSession(mockSessionToken);
+
+      // Assert
+      expect(loggerSpy).toHaveBeenCalledWith(
+        'Session validation error',
+        networkError,
       );
     });
   });

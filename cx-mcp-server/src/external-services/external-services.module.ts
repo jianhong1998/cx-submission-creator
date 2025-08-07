@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { UserAccountService } from './services/user-account.service';
+import { AuthenticationService } from './services/authentication.service';
 import { AppConfigService } from '../configs/app-config.service';
 
 /**
@@ -8,7 +9,7 @@ import { AppConfigService } from '../configs/app-config.service';
  * making it easy to add new external services while maintaining separation of concerns.
  */
 @Module({
-  providers: [UserAccountService, AppConfigService],
-  exports: [UserAccountService],
+  providers: [UserAccountService, AuthenticationService, AppConfigService],
+  exports: [UserAccountService, AuthenticationService],
 })
 export class ExternalServicesModule {}

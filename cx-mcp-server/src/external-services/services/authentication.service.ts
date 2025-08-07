@@ -85,10 +85,44 @@ export class AuthenticationService {
    * @param sessionToken - The session token to validate
    * @returns Promise<boolean> - True if session is valid, false otherwise
    */
-  validateSession(): Promise<boolean> {
-    // Implementation will be added in Phase 4
-    this.logger.log('Session validation not yet implemented');
-    return Promise.resolve(false);
+  async validateSession(sessionToken: string): Promise<boolean> {
+    if (!sessionToken) {
+      this.logger.warn('Session validation failed: No session token provided');
+      return false;
+    }
+
+    try {
+      // Test session validity by making a request to a protected endpoint
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
+      const testUrl = `${this.appConfigService.getBackendHostname()}/services/uat/project-team-builder/account-licenses`;
+
+      const response = await fetch(testUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+          Cookie: `cnx=${sessionToken}`,
+        },
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      const isValid = response.status === 200;
+
+      if (isValid) {
+        this.logger.log('Session validation successful');
+      } else {
+        this.logger.warn(`Session validation failed: HTTP ${response.status}`);
+      }
+
+      return isValid;
+    } catch (error) {
+      this.logger.error('Session validation error', error);
+      return false;
+    }
   }
 
   /**
