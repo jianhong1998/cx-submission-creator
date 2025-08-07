@@ -255,25 +255,30 @@ export const loginAsUserTool: McpTool = {
 
 #### Response Format Implementation
 
+**Note**: The response format specifications below follow the authoritative definitions in [SPEC.md](SPEC.md). For complete details on response formats, refer to the SPEC.md document.
+
 ```typescript
-// Success Response Schema
+// Success Response Schema (per SPEC.md)
 interface AuthenticationSuccessResponse {
   success: true;
   data: {
     accountUuid: string;
-    sessionToken?: string;
-    expiresAt?: string;
+    sessionCookies: {
+      cnx: string;           // Main session cookie value
+      cnxExpires: string;    // Session expiration timestamp
+    };
+    redirectLocation: string; // Redirect URL from 302 response
     message: string;
   };
   operation: "login_as_user";
   timestamp: string;
 }
 
-// Error Response Schema
+// Error Response Schema (per SPEC.md)
 interface AuthenticationErrorResponse {
   success: false;
   error: {
-    type: "CLIENT_ERROR" | "SERVER_ERROR" | "NETWORK_ERROR";
+    type: "CLIENT_ERROR" | "SERVER_ERROR" | "NETWORK_ERROR" | "TIMEOUT_ERROR";
     statusCode: number;
     message: string;
     details?: unknown;

@@ -59,12 +59,18 @@ export class AuthenticationService {
       if (sessionData) {
         this.logger.log(`Successfully authenticated account: ${accountUuid}`);
 
+        // Extract redirect location from Location header
+        const redirectLocation = response.headers.get('location') || '';
+
         const successResponse: AuthenticationSuccessResponse = {
           success: true,
           data: {
             accountUuid,
-            sessionToken: sessionData.sessionToken,
-            expiresAt: sessionData.expiresAt,
+            sessionCookies: {
+              cnx: sessionData.cnx,
+              cnxExpires: sessionData.cnxExpires,
+            },
+            redirectLocation,
             message: 'Authentication successful',
           },
           operation: 'login_as_user',
@@ -82,11 +88,11 @@ export class AuthenticationService {
 
   /**
    * Validates if a session is still active and valid
-   * @param sessionToken - The session token to validate
+   * @param cnxToken - The cnx session token to validate
    * @returns Promise<boolean> - True if session is valid, false otherwise
    */
-  async validateSession(sessionToken: string): Promise<boolean> {
-    if (!sessionToken) {
+  async validateSession(cnxToken: string): Promise<boolean> {
+    if (!cnxToken) {
       this.logger.warn('Session validation failed: No session token provided');
       return false;
     }
@@ -103,7 +109,7 @@ export class AuthenticationService {
         headers: {
           'Content-Type': 'application/json',
           Accept: 'application/json',
-          Cookie: `cnx=${sessionToken}`,
+          Cookie: `cnx=${cnxToken}`,
         },
         signal: controller.signal,
       });
@@ -146,8 +152,8 @@ export class AuthenticationService {
 
     // Parse cookies to extract session information
     const cookies = setCookieHeaders.split(',');
-    let sessionToken: string | null = null;
-    let expiresAt: string | null = null;
+    let cnx: string | null = null;
+    let cnxExpires: string | null = null;
 
     cookies.forEach((cookie) => {
       const trimmedCookie = cookie.trim();
@@ -156,22 +162,22 @@ export class AuthenticationService {
         // Extract session token from cnx cookie
         const sessionMatch = trimmedCookie.match(/cnx=([^;]+)/);
         if (sessionMatch) {
-          sessionToken = sessionMatch[1];
+          cnx = sessionMatch[1];
         }
       } else if (trimmedCookie.startsWith('cnx-expires=')) {
         // Extract expiration from cnx-expires cookie
         const expiresMatch = trimmedCookie.match(/cnx-expires=([^;]+)/);
         if (expiresMatch) {
-          expiresAt = expiresMatch[1];
+          cnxExpires = expiresMatch[1];
         }
       }
     });
 
-    if (sessionToken) {
+    if (cnx) {
       return {
-        sessionToken,
-        expiresAt:
-          expiresAt || new Date(Date.now() + 30 * 60 * 1000).toISOString(), // Default 30 minutes
+        cnx,
+        cnxExpires:
+          cnxExpires || new Date(Date.now() + 30 * 60 * 1000).toISOString(), // Default 30 minutes
         accountUuid,
       };
     }

@@ -80,6 +80,7 @@ describe('AuthenticationService', () => {
         headers: {
           'set-cookie':
             'cnx=s%3Asession-token.signature; Path=/; Expires=Wed, 01 Jan 2025 12:00:00 GMT; HttpOnly; SameSite=Strict, cnx-expires=1640952000000; Path=/; Expires=0',
+          location: '/dashboard',
         },
       });
       mockFetch.mockResolvedValue(mockResponse);
@@ -102,8 +103,11 @@ describe('AuthenticationService', () => {
         success: true,
         data: {
           accountUuid: mockAccountUuid,
-          sessionToken: 's%3Asession-token.signature',
-          expiresAt: '1640952000000',
+          sessionCookies: {
+            cnx: 's%3Asession-token.signature',
+            cnxExpires: '1640952000000',
+          },
+          redirectLocation: '/dashboard',
           message: 'Authentication successful',
         },
         operation: 'login_as_user',
@@ -357,8 +361,11 @@ describe('AuthenticationService', () => {
         success: true,
         data: {
           accountUuid: mockAccountUuid,
-          sessionToken: 's%3Acomplex-session.signature',
-          expiresAt: '1640952000000',
+          sessionCookies: {
+            cnx: 's%3Acomplex-session.signature',
+            cnxExpires: '1640952000000',
+          },
+          redirectLocation: '',
           message: 'Authentication successful',
         },
         operation: 'login_as_user',
@@ -369,7 +376,7 @@ describe('AuthenticationService', () => {
   });
 
   describe('validateSession', () => {
-    const mockSessionToken = 's%3Asession-token.signature';
+    const mockCnxToken = 's%3Asession-token.signature';
     const mockValidationUrl =
       'http://localhost:8000/services/uat/project-team-builder/account-licenses';
 
@@ -382,7 +389,7 @@ describe('AuthenticationService', () => {
       mockFetch.mockResolvedValue(mockResponse);
 
       // Act
-      const result = await service.validateSession(mockSessionToken);
+      const result = await service.validateSession(mockCnxToken);
 
       // Assert
       expect(mockFetch).toHaveBeenCalledWith(mockValidationUrl, {
@@ -390,7 +397,7 @@ describe('AuthenticationService', () => {
         headers: {
           'Content-Type': 'application/json',
           Accept: 'application/json',
-          Cookie: `cnx=${mockSessionToken}`,
+          Cookie: `cnx=${mockCnxToken}`,
         },
         signal: expect.any(AbortSignal) as AbortSignal,
       });
@@ -406,7 +413,7 @@ describe('AuthenticationService', () => {
       mockFetch.mockResolvedValue(mockResponse);
 
       // Act
-      const result = await service.validateSession(mockSessionToken);
+      const result = await service.validateSession(mockCnxToken);
 
       // Assert
       expect(result).toBe(false);
@@ -435,7 +442,7 @@ describe('AuthenticationService', () => {
       mockFetch.mockRejectedValue(new Error('Network error'));
 
       // Act
-      const result = await service.validateSession(mockSessionToken);
+      const result = await service.validateSession(mockCnxToken);
 
       // Assert
       expect(result).toBe(false);
@@ -448,7 +455,7 @@ describe('AuthenticationService', () => {
       mockFetch.mockRejectedValue(abortError);
 
       // Act
-      const result = await service.validateSession(mockSessionToken);
+      const result = await service.validateSession(mockCnxToken);
 
       // Assert
       expect(result).toBe(false);
@@ -464,7 +471,7 @@ describe('AuthenticationService', () => {
       const loggerSpy = jest.spyOn(Logger.prototype, 'log');
 
       // Act
-      await service.validateSession(mockSessionToken);
+      await service.validateSession(mockCnxToken);
 
       // Assert
       expect(loggerSpy).toHaveBeenCalledWith('Session validation successful');
@@ -480,7 +487,7 @@ describe('AuthenticationService', () => {
       const loggerSpy = jest.spyOn(Logger.prototype, 'warn');
 
       // Act
-      await service.validateSession(mockSessionToken);
+      await service.validateSession(mockCnxToken);
 
       // Assert
       expect(loggerSpy).toHaveBeenCalledWith(
@@ -508,7 +515,7 @@ describe('AuthenticationService', () => {
       const loggerSpy = jest.spyOn(Logger.prototype, 'error');
 
       // Act
-      await service.validateSession(mockSessionToken);
+      await service.validateSession(mockCnxToken);
 
       // Assert
       expect(loggerSpy).toHaveBeenCalledWith(

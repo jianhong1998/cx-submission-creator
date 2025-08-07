@@ -3,10 +3,10 @@
  */
 export interface SessionData {
   /** Primary session cookie value (cnx) */
-  sessionToken: string;
+  cnx: string;
 
   /** Session expiration timestamp from cookie */
-  expiresAt: string;
+  cnxExpires: string;
 
   /** Account UUID associated with the session */
   accountUuid: string;
@@ -24,11 +24,16 @@ export interface AuthenticationSuccessResponse {
     /** Account UUID that was authenticated */
     accountUuid: string;
 
-    /** Session token for subsequent requests (optional as it may be in cookies) */
-    sessionToken?: string;
+    /** Session cookies extracted from authentication response */
+    sessionCookies: {
+      /** Main session cookie value (cnx) */
+      cnx: string;
+      /** Session expiration timestamp (cnxExpires) */
+      cnxExpires: string;
+    };
 
-    /** Session expiration timestamp */
-    expiresAt?: string;
+    /** Redirect URL from 302 response */
+    redirectLocation: string;
 
     /** Success message */
     message: string;
